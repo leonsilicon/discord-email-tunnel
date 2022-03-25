@@ -3,6 +3,7 @@ import * as nodemailer from 'nodemailer';
 import onetime from 'onetime';
 import { google } from 'googleapis';
 import { PubSub } from '@google-cloud/pubsub';
+import { getDiscordBot } from '~/utils/discord.js';
 
 export const getSmtpTransport = onetime(async () =>
 	nodemailer.createTransport({
@@ -67,8 +68,12 @@ export async function setupGmailWebhook() {
 		});
 
 	const subscription = pubSubClient.subscription(subscriptionName);
+
 	subscription.on('message', (message) => {
 		console.log(message);
 	});
 }
 
+function onEmailSent() {
+	const bot = getDiscordBot();
+}

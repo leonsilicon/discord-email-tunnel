@@ -1,22 +1,13 @@
 import 'dotenv/config.js';
 import * as process from 'node:process';
 import type { Message, PartialMessage } from 'discord.js';
-import { Client, Intents } from 'discord.js';
 import onetime from 'onetime';
 import xmlEscape from 'xml-escape';
+import { getDiscordBot } from '~/utils/discord.js';
 import { getSmtpTransport, setupGmailWebhook } from '~/utils/email.js';
 
 await setupGmailWebhook();
-
-const bot = new Client({
-	intents: [
-		Intents.FLAGS.DIRECT_MESSAGES,
-		Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-		Intents.FLAGS.GUILDS,
-		Intents.FLAGS.GUILD_MESSAGES,
-	],
-	partials: ['CHANNEL'],
-});
+const bot = getDiscordBot();
 
 const getBotUser = onetime(() => {
 	if (bot.user === null) {
@@ -59,7 +50,9 @@ async function sendMessageEmailUpdate({
 	if (type === 'create') {
 		await smtpTransport.sendMail({
 			from: 'admin@leonzalion.com',
-			replyTo: 'discord@leonzalion.com',
+			replyTo: `discord+${message.channel.type.toLowerCase()}:${
+				message.channel.id
+			}@leonzalion.com`,
 			html: emailContent,
 			subject: `New message from ${message.author!.username}`,
 			to: 'leon@leonzalion.com',
