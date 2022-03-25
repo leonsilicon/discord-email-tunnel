@@ -1,8 +1,9 @@
 import 'dotenv/config.js';
 import * as process from 'node:process';
-import type { Message, PartialMessage } from 'discord.js';
+import type { Message, PartialMessage, User } from 'discord.js';
 import { Client, Intents } from 'discord.js';
 import schedule from 'node-schedule';
+import arrayUnique from 'array-uniq';
 import { getSmtpTransport } from '~/utils/email.js';
 
 const client = new Client({
@@ -25,23 +26,48 @@ async function sendEmailUpdate() {
 	const messages = [...queuedMessages.values()];
 	queuedMessages.clear();
 
-	const emailContents = messages.map((message) => message.content).join('\n');
+	if (messages.length === 0) return;
 
-	const usernames = messages.map((message) => message.author);
+	const usersMap = Object.fromEntries(
+		messages.map((message) => [message.author?.id, message.author])
+	) as Record<string, User>;
+
+	const userIds = arrayUnique(messages.map((message) => message.author!.id));
 
 	const smtpTransport = await getSmtpTransport();
+	await Promise.all(
+		userIds.map(async (userId) => {
+			const emailContents = messages
+				.map((message) => message.content)
+				.join('\n');
 
-	await smtpTransport.sendMail({
-		from: 'discord@leonzalion.com',
-		text: emailContents,
-		subject: `New message from ${usernames.join(', ')}`,
-		to: 'leon@leonzalion.com',
-	});
+			await smtpTransport.sendMail({
+				from: 'discord@leonzalion.com',
+				text: emailContents,
+				subject: `New message from ${usersMap[userId]!.username}`,
+				to: 'leon@leonzalion.com',
+			});
+		})
+	);
+}
+
+function addQueuedMessage(message: Message | PartialMessage) {
+	console.log(`added message ${message.content!} to queue`);
+	queuedMessages.set(message.id, message);
 }
 
 client.on('messageCreate', async (message) => {
+	if (
+		message.author.id === '553740418865561631' &&
+		message.content === '!send'
+	) {
+		await sendEmailUpdate();
+		await message.channel.send('Email update sent.');
+		return;
+	}
+
 	if (message.channel.type === 'DM' || message.mentions.has(client.user!)) {
-		queuedMessages.set(message.id, message);
+		addQueuedMessage(message);
 	}
 });
 
@@ -50,11 +76,13 @@ client.on('messageDelete', async (message) => {
 });
 
 client.on('messageUpdate', async (message) => {
-	queuedMessages.set(message.id, message);
+	addQueuedMessage(message);
 });
 
-client.on('ready', () => {
+client.on('ready', async () => {
 	console.log(`Logged in as ${client.user?.tag ?? 'unknown'}!`);
+
+	await client.user!.setUsername('LeonS');
 
 	schedule.scheduleJob('5 * * * *', async () => {
 		await sendEmailUpdate();
