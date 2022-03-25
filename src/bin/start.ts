@@ -1,12 +1,11 @@
 import 'dotenv/config.js';
 import * as process from 'node:process';
-import type { Message, PartialMessage, User } from 'discord.js';
+import type { Message, PartialMessage } from 'discord.js';
 import { Client, Intents } from 'discord.js';
-import schedule from 'node-schedule';
-import arrayUnique from 'array-uniq';
+import onetime from 'onetime';
 import { getSmtpTransport } from '~/utils/email.js';
 
-const client = new Client({
+const bot = new Client({
 	intents: [
 		Intents.FLAGS.DIRECT_MESSAGES,
 		Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
@@ -16,77 +15,76 @@ const client = new Client({
 	partials: ['CHANNEL'],
 });
 
-/**
- * Map of message ID to message
- */
-const queuedMessages = new Map<string, Message | PartialMessage>();
+const getBotUser = onetime(() => {
+	if (bot.user === null) {
+		throw new Error('Bot has not been initialized.');
+	}
 
-// Only sends email updates about messages every 5 minutes
-async function sendEmailUpdate() {
-	const messages = [...queuedMessages.values()];
-	queuedMessages.clear();
+	return bot.user;
+});
 
-	if (messages.length === 0) return;
+type SendMessageEmailUpdateProps = {
+	message: Message | PartialMessage;
+	type: 'create' | 'delete' | 'update';
+};
 
-	const usersMap = Object.fromEntries(
-		messages.map((message) => [message.author?.id, message.author])
-	) as Record<string, User>;
-
-	const userIds = arrayUnique(messages.map((message) => message.author!.id));
-
+async function sendMessageEmailUpdate({
+	message,
+	type,
+}: SendMessageEmailUpdateProps) {
 	const smtpTransport = await getSmtpTransport();
-	await Promise.all(
-		userIds.map(async (userId) => {
-			const emailContents = messages
-				.map((message) => message.content)
-				.join('\n');
 
-			await smtpTransport.sendMail({
-				from: 'discord@leonzalion.com',
-				text: emailContents,
-				subject: `New message from ${usersMap[userId]!.username}`,
-				to: 'leon@leonzalion.com',
-			});
-		})
-	);
-}
+	let emailContent =
+		message.content?.replace(new RegExp(`^<@${getBotUser().id}>`), '') ??
+		'[Empty message]';
 
-function addQueuedMessage(message: Message | PartialMessage) {
-	console.log(`added message ${message.content!} to queue`);
-	queuedMessages.set(message.id, message);
-}
+	if (message.attachments.size > 0) {
+		emailContent += `
+			<h1>Attachments</h1>
+		`;
 
-client.on('messageCreate', async (message) => {
-	if (
-		message.author.id === '553740418865561631' &&
-		message.content === '!send'
-	) {
-		await sendEmailUpdate();
-		await message.channel.send('Email update sent.');
-		return;
+		for (const attachment of message.attachments.values()) {
+			emailContent += `
+				${attachment.name ?? 'Unnamed attachment'}: <a href="${attachment.proxyURL}">${
+				attachment.proxyURL
+			}</a>
+			`;
+		}
 	}
 
-	if (message.channel.type === 'DM' || message.mentions.has(client.user!)) {
-		addQueuedMessage(message);
+	if (type === 'create') {
+		await smtpTransport.sendMail({
+			from: 'admin@leonzalion.com',
+			replyTo: 'discord@leonzalion.com',
+			text: emailContent,
+			subject: `New message from ${message.author!.username}`,
+			to: 'leon@leonzalion.com',
+		});
+	}
+}
+
+bot.on('messageCreate', async (message) => {
+	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
+		await sendMessageEmailUpdate({ message, type: 'create' });
 	}
 });
 
-client.on('messageDelete', async (message) => {
-	queuedMessages.delete(message.id);
+bot.on('messageDelete', async (message) => {
+	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
+		await sendMessageEmailUpdate({ message, type: 'delete' });
+	}
 });
 
-client.on('messageUpdate', async (message) => {
-	addQueuedMessage(message);
+bot.on('messageUpdate', async (message) => {
+	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
+		await sendMessageEmailUpdate({ message, type: 'update' });
+	}
 });
 
-client.on('ready', async () => {
-	console.log(`Logged in as ${client.user?.tag ?? 'unknown'}!`);
+bot.on('ready', async () => {
+	console.log(`Logged in as ${getBotUser().tag ?? 'unknown'}!`);
 
-	await client.user!.setUsername('LeonS');
-
-	schedule.scheduleJob('5 * * * *', async () => {
-		await sendEmailUpdate();
-	});
+	await getBotUser().setUsername('LeonS');
 });
 
-await client.login(process.env.DISCORD_TOKEN);
+await bot.login(process.env.DISCORD_TOKEN);

@@ -21,6 +21,7 @@ specifiers:
   nodemailer: ^6.7.3
   nodemon: ^2.0.15
   onetime: ^6.0.0
+  outdent: ^0.8.0
   prettier: ^2.5.1
   random-item: ^4.0.1
   tsc-alias: ^1.6.1
@@ -35,6 +36,7 @@ dependencies:
   node-schedule: 2.1.0
   nodemailer: 6.7.3
   onetime: 6.0.0
+  outdent: 0.8.0
   random-item: 4.0.1
 
 devDependencies:
@@ -3731,6 +3733,10 @@ packages:
       type-check: 0.4.0
       word-wrap: 1.2.3
     dev: true
+
+  /outdent/0.8.0:
+    resolution: {integrity: sha512-KiOAIsdpUTcAXuykya5fnVVT+/5uS0Q1mrkRHcF89tpieSmY33O/tmc54CqwA+bfhbtEfZUNLHaPUiB9X3jt1A==}
+    dev: false
 
   /p-cancelable/1.1.0:
     resolution: {integrity: sha512-s73XxOZ4zpt1edZYZzvhqFa6uvQc1vwUa0K0BdtIZgQMAJj9IbebH+JkgKZc9h+B05PKHLOTl4ajG1BmNrVZlw==}
