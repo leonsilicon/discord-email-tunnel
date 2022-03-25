@@ -3,17 +3,10 @@
 	"compilerOptions": {
 		"outDir": "dist",
 		"baseUrl": ".",
-		"lib": [
-			"ES2021"
-		],
+		"lib": ["ES2021"],
 		"paths": {
-			"~/*": [
-				"./src/*"
-			]
+			"~/*": ["./src/*"]
 		}
 	},
-	"include": [
-		"./src",
-		"./typings"
-	]
+	"include": ["./src", "./typings"]
 }
