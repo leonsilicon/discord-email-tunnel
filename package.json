@@ -18,7 +18,7 @@
 	"scripts": {
 		"prepare": "lion-git-hooks",
 		"build": "node-ts ./scripts/build.ts",
-		"dev": "nodemon --ext ts,json --delay 5",
+		"dev": "nodemon --ext ts,json --delay 60",
 		"start": "node-ts ./src/bin/start.ts",
 		"test": "vitest run",
 		"lint": "eslint --cache --fix .",
@@ -58,6 +58,8 @@
 	"dependencies": {
 		"discord.js": "^13.6.0",
 		"dotenv": "^16.0.0",
-		"nodemailer": "^6.7.3"
+		"googleapis": "^98.0.0",
+		"nodemailer": "^6.7.3",
+		"onetime": "^6.0.0"
 	}
 }
