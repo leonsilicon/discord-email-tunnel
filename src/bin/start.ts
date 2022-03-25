@@ -3,7 +3,10 @@ import * as process from 'node:process';
 import type { Message, PartialMessage } from 'discord.js';
 import { Client, Intents } from 'discord.js';
 import onetime from 'onetime';
-import { getSmtpTransport } from '~/utils/email.js';
+import xmlEscape from 'xml-escape';
+import { getSmtpTransport, setupGmailWebhook } from '~/utils/email.js';
+
+await setupGmailWebhook();
 
 const bot = new Client({
 	intents: [
@@ -34,9 +37,10 @@ async function sendMessageEmailUpdate({
 }: SendMessageEmailUpdateProps) {
 	const smtpTransport = await getSmtpTransport();
 
-	let emailContent =
+	let emailContent = xmlEscape(
 		message.content?.replace(new RegExp(`^<@${getBotUser().id}>`), '') ??
-		'[Empty message]';
+			'[Empty message]'
+	);
 
 	if (message.attachments.size > 0) {
 		emailContent += `
@@ -45,9 +49,9 @@ async function sendMessageEmailUpdate({
 
 		for (const attachment of message.attachments.values()) {
 			emailContent += `
-				${attachment.name ?? 'Unnamed attachment'}: <a href="${attachment.proxyURL}">${
+				${xmlEscape(attachment.name ?? 'Unnamed attachment')}: <a href="${
 				attachment.proxyURL
-			}</a>
+			}">${attachment.proxyURL}</a>
 			`;
 		}
 	}
@@ -56,7 +60,7 @@ async function sendMessageEmailUpdate({
 		await smtpTransport.sendMail({
 			from: 'admin@leonzalion.com',
 			replyTo: 'discord@leonzalion.com',
-			text: emailContent,
+			html: emailContent,
 			subject: `New message from ${message.author!.username}`,
 			to: 'leon@leonzalion.com',
 		});
