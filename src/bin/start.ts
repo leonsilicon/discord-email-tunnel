@@ -50,9 +50,7 @@ async function sendMessageEmailUpdate({
 	if (type === 'create') {
 		await smtpTransport.sendMail({
 			from: 'admin@leonzalion.com',
-			replyTo: `discord+${message.channel.type.toLowerCase()}:${
-				message.channel.id
-			}@leonzalion.com`,
+			replyTo: `discord-email-tunnel+test@leonzalion.com`,
 			html: emailContent,
 			subject: `New message from ${message.author!.username}`,
 			to: 'leon@leonzalion.com',
@@ -61,6 +59,7 @@ async function sendMessageEmailUpdate({
 }
 
 bot.on('messageCreate', async (message) => {
+	if (message.author.id === '546885051334524949') return;
 	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
 		await sendMessageEmailUpdate({ message, type: 'create' });
 	}

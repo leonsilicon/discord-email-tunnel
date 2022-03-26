@@ -124,3 +124,5 @@ dist-ssr
 # Cache files
 .eslintcache
 tsconfig.tsbuildinfo
+
+service-account-file.json
