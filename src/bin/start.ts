@@ -29,7 +29,7 @@ async function sendMessageEmailUpdate({
 	const smtpTransport = await getSmtpTransport();
 
 	let emailContent = xmlEscape(
-		message.content?.replace(new RegExp(`^<@${getBotUser().id}>`), '') ??
+		message.content?.replace(new RegExp(`^<@!${getBotUser().id}>`), '') ??
 			'[Empty message]'
 	);
 

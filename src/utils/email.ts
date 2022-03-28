@@ -1,6 +1,7 @@
 import * as process from 'node:process';
 import * as path from 'node:path';
 import * as util from 'node:util';
+import { Buffer } from 'node:buffer';
 import * as nodemailer from 'nodemailer';
 import onetime from 'onetime';
 import { google } from 'googleapis';
@@ -88,8 +89,8 @@ export async function setupGmailWebhook() {
 			startHistoryId,
 		});
 
-		const messageId = historyResponse.data.history?.[0]?.messages?.[0]?.id;
-		console.log(JSON.stringify(historyResponse.data, null, '\t'));
+		const messageId =
+			historyResponse.data.history?.[0]?.messagesAdded?.[0]?.message?.id;
 
 		if (messageId !== undefined && messageId !== null) {
 			console.log(messageId);
@@ -100,8 +101,12 @@ export async function setupGmailWebhook() {
 					id: messageId,
 				});
 
+				console.log(util.inspect(message, false, Number.POSITIVE_INFINITY, true));
 				const messagePayload = message.data.payload;
-				console.log(JSON.stringify(messagePayload));
+				const data = messagePayload?.body?.data;
+				if (data !== null && data !== undefined) {
+					console.log('message:', Buffer.from(data, 'base64').toString());
+				}
 			} catch (error: unknown) {
 				console.error(error);
 			}
