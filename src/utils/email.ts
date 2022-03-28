@@ -143,7 +143,7 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 		throw new Error('Email does not contain any parts.');
 	}
 
-	emailFirstPartBody = Buffer.from(emailFirstPartBody).toString('base64');
+	emailFirstPartBody = Buffer.from(emailFirstPartBody, 'base64').toString();
 
 	const destinationEmailAddress = messageResponse.data.payload?.headers?.find(
 		(header) => header.name === 'To'
