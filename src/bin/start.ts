@@ -50,7 +50,7 @@ async function sendMessageEmailUpdate({
 	if (type === 'create') {
 		await smtpTransport.sendMail({
 			from: 'admin@leonzalion.com',
-			replyTo: `discord-email-tunnel+test@leonzalion.com`,
+			replyTo: `discord-email-tunnel+${message.id}@leonzalion.com`,
 			html: emailContent,
 			subject: `New message from ${message.author!.username}`,
 			to: 'leon@leonzalion.com',
@@ -78,9 +78,11 @@ bot.on('messageUpdate', async (message) => {
 });
 
 bot.on('ready', async () => {
-	console.log(`Logged in as ${getBotUser().tag ?? 'unknown'}!`);
+	const user = getBotUser();
 
-	await getBotUser().setUsername('LeonS');
+	console.log(`Logged in as ${user.tag ?? 'unknown'}!`);
+
+	await user.setUsername('LeonS');
 });
 
 await bot.login(process.env.DISCORD_TOKEN);

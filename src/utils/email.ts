@@ -1,14 +1,13 @@
 import * as process from 'node:process';
 import * as path from 'node:path';
-import * as util from 'node:util';
-import { Buffer } from 'node:buffer';
 import * as nodemailer from 'nodemailer';
 import onetime from 'onetime';
-import { google } from 'googleapis';
+import type { gmail_v1 } from 'googleapis';
 import type { Message } from '@google-cloud/pubsub';
 import { PubSub } from '@google-cloud/pubsub';
 import { getProjectDir } from 'lion-system';
 import { getDiscordBot } from '~/utils/discord.js';
+import { getGmailClient } from '~/utils/google.js';
 
 export const getSmtpTransport = onetime(async () =>
 	nodemailer.createTransport({
@@ -51,17 +50,7 @@ export async function setupGmailWebhook() {
 		[subscription] = await topic.createSubscription('email-received');
 	}
 
-	const oauth2Client = new google.auth.OAuth2({
-		clientId: process.env.GOOGLE_CLOUD_CLIENT_ID,
-		clientSecret: process.env.GOOGLE_CLOUD_CLIENT_SECRET,
-		redirectUri: 'https://developers.google.com/oauthplayground',
-	});
-
-	oauth2Client.setCredentials({
-		refresh_token: process.env.GOOGLE_CLOUD_REFRESH_TOKEN,
-	});
-
-	const gmail = google.gmail({ auth: oauth2Client, version: 'v1' });
+	const gmail = getGmailClient();
 
 	const watchResponse = await gmail.users.watch({
 		userId: 'admin@leonzalion.com',
@@ -75,48 +64,90 @@ export async function setupGmailWebhook() {
 	let lastHistoryId = watchResponse.data.historyId;
 
 	subscription.on('message', async (message: Message) => {
-		const payload = JSON.parse(message.data.toString()) as {
+		message.ack();
+
+		const messagePayload = JSON.parse(message.data.toString()) as {
 			emailAddress: string;
 			historyId: number;
 		};
 
 		const startHistoryId = lastHistoryId;
-		lastHistoryId = String(payload.historyId);
+		lastHistoryId = String(messagePayload.historyId);
 
 		// https://stackoverflow.com/questions/42090593/gmail-watch-user-inbox-history-getmessagesadded-is-not-returning-the-new-messag
 		const historyResponse = await gmail.users.history.list({
-			userId: payload.emailAddress,
+			userId: messagePayload.emailAddress,
 			startHistoryId,
 		});
 
-		const messageId =
-			historyResponse.data.history?.[0]?.messagesAdded?.[0]?.message?.id;
+		for (const historyEntry of historyResponse.data.history ?? []) {
+			for (const addedMessage of historyEntry.messagesAdded ?? []) {
+				if (
+					addedMessage.message?.labelIds?.some((labelId) => labelId === 'SENT')
+				) {
+					if (addedMessage.message.id === undefined) continue;
 
-		if (messageId !== undefined && messageId !== null) {
-			console.log(messageId);
-
-			try {
-				const message = await gmail.users.messages.get({
-					userId: payload.emailAddress,
-					id: messageId,
-				});
-
-				console.log(util.inspect(message, false, Number.POSITIVE_INFINITY, true));
-				const messagePayload = message.data.payload;
-				const data = messagePayload?.body?.data;
-				if (data !== null && data !== undefined) {
-					console.log('message:', Buffer.from(data, 'base64').toString());
+					onEmailReply({
+						emailAddress: messagePayload.emailAddress,
+						message: addedMessage.message,
+					}).catch((error) => {
+						console.error(error);
+					});
 				}
-			} catch (error: unknown) {
-				console.error(error);
 			}
 		}
-
-		message.ack();
 	});
 }
 
-async function onEmailSent() {
+type OnEmailReplyProps = {
+	message: gmail_v1.Schema$Message;
+	emailAddress: string;
+};
+
+async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 	const bot = getDiscordBot();
-	const channel = await bot.channels.fetch('');
+	const gmail = getGmailClient();
+
+	if (message.id === undefined || message.id === null) {
+		throw new Error(
+			`Message ID not found in message ${JSON.stringify(message)}`
+		);
+	}
+
+	const messageResponse = await gmail.users.messages.get({
+		userId: emailAddress,
+		id: message.id,
+	});
+
+	const emailBody = messageResponse.data.payload?.body?.data;
+
+	if (emailBody === undefined || emailBody === null) {
+		throw new Error('Email body not found.');
+	}
+
+	const destinationEmailAddress = messageResponse.data.payload?.headers?.find(
+		(header) => header.name === 'To'
+	)?.value;
+
+	if (destinationEmailAddress === undefined) {
+		throw new Error('Destination email address not found.');
+	}
+
+	const channelId = destinationEmailAddress?.match(/\+(\w+)@/)?.[1];
+
+	if (channelId === undefined) {
+		throw new Error('Channel ID not found in destination email address.');
+	}
+
+	const channel = await bot.channels.fetch(channelId);
+
+	if (channel === null) {
+		throw new Error(`Channel with ID ${channelId} not found.`);
+	}
+
+	if (!channel.isText()) {
+		throw new Error(`Channel with ID ${channelId} is not a text channel.`);
+	}
+
+	await channel.send(emailBody);
 }
