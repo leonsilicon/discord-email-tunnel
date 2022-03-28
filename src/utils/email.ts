@@ -1,5 +1,7 @@
 import * as process from 'node:process';
 import * as path from 'node:path';
+import * as util from 'node:util';
+import { Buffer } from 'node:buffer';
 import * as nodemailer from 'nodemailer';
 import onetime from 'onetime';
 import type { gmail_v1 } from 'googleapis';
@@ -8,6 +10,7 @@ import { PubSub } from '@google-cloud/pubsub';
 import { getProjectDir } from 'lion-system';
 import { getDiscordBot } from '~/utils/discord.js';
 import { getGmailClient } from '~/utils/google.js';
+import { logDebug } from '~/utils/log.js';
 
 export const getSmtpTransport = onetime(async () =>
 	nodemailer.createTransport({
@@ -82,10 +85,15 @@ export async function setupGmailWebhook() {
 
 		for (const historyEntry of historyResponse.data.history ?? []) {
 			for (const addedMessage of historyEntry.messagesAdded ?? []) {
-				if (
-					addedMessage.message?.labelIds?.some((labelId) => labelId === 'SENT')
-				) {
-					if (addedMessage.message.id === undefined) continue;
+				const labelIds = addedMessage.message?.labelIds ?? undefined;
+
+				if (labelIds === undefined) {
+					continue;
+				}
+
+				// TODO: find a better way to detect a sent email
+				if (labelIds.length === 1 && labelIds.includes('SENT')) {
+					if (addedMessage.message?.id === undefined) continue;
 
 					onEmailReply({
 						emailAddress: messagePayload.emailAddress,
@@ -105,6 +113,8 @@ type OnEmailReplyProps = {
 };
 
 async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
+	logDebug(() => 'Handling mail reply...');
+
 	const bot = getDiscordBot();
 	const gmail = getGmailClient();
 
@@ -119,11 +129,21 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 		id: message.id,
 	});
 
-	const emailBody = messageResponse.data.payload?.body?.data;
+	const emailParts = messageResponse.data.payload?.parts ?? undefined;
 
-	if (emailBody === undefined || emailBody === null) {
-		throw new Error('Email body not found.');
+	if (emailParts === undefined) {
+		throw new Error('Email parts not found.');
+	} else if (emailParts.length === 0) {
+		throw new Error('Email does not contain any parts.');
 	}
+
+	let emailFirstPartBody = emailParts[0]?.body?.data ?? undefined;
+
+	if (emailFirstPartBody === undefined) {
+		throw new Error('Email does not contain any parts.');
+	}
+
+	emailFirstPartBody = Buffer.from(emailFirstPartBody).toString('base64');
 
 	const destinationEmailAddress = messageResponse.data.payload?.headers?.find(
 		(header) => header.name === 'To'
@@ -133,10 +153,20 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 		throw new Error('Destination email address not found.');
 	}
 
-	const channelId = destinationEmailAddress?.match(/\+(\w+)@/)?.[1];
+	const plusAddressMatches =
+		destinationEmailAddress?.match(/\+(\w+)-(\w+)@/) ?? undefined;
 
-	if (channelId === undefined) {
-		throw new Error('Channel ID not found in destination email address.');
+	if (plusAddressMatches === undefined) {
+		throw new Error('Email address does not match expected regex.');
+	}
+
+	const channelId = plusAddressMatches[1];
+	const messageId = plusAddressMatches[2];
+
+	if (channelId === undefined || messageId === undefined) {
+		throw new Error(
+			'Channel ID or message ID not found in destination email address.'
+		);
 	}
 
 	const channel = await bot.channels.fetch(channelId);
@@ -149,5 +179,12 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 		throw new Error(`Channel with ID ${channelId} is not a text channel.`);
 	}
 
-	await channel.send(emailBody);
+	const channelMessage = await channel.messages.fetch(messageId);
+
+	await channel.send({
+		content: emailFirstPartBody,
+		reply: {
+			messageReference: channelMessage,
+		},
+	});
 }
