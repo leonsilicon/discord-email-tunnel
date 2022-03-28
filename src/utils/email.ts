@@ -1,6 +1,5 @@
 import * as process from 'node:process';
 import * as path from 'node:path';
-import * as util from 'node:util';
 import { Buffer } from 'node:buffer';
 import * as nodemailer from 'nodemailer';
 import onetime from 'onetime';
@@ -8,6 +7,9 @@ import type { gmail_v1 } from 'googleapis';
 import type { Message } from '@google-cloud/pubsub';
 import { PubSub } from '@google-cloud/pubsub';
 import { getProjectDir } from 'lion-system';
+import * as cheerio from 'cheerio';
+import { decode as decodeHtmlEntities } from 'html-entities';
+import { convert as convertHtmlToText, htmlToText } from 'html-to-text';
 import { getDiscordBot } from '~/utils/discord.js';
 import { getGmailClient } from '~/utils/google.js';
 import { logDebug } from '~/utils/log.js';
@@ -137,13 +139,29 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 		throw new Error('Email does not contain any parts.');
 	}
 
-	let emailFirstPartBody = emailParts[0]?.body?.data ?? undefined;
+	const htmlPart = emailParts?.find((part) => part.mimeType === 'text/html');
 
-	if (emailFirstPartBody === undefined) {
-		throw new Error('Email does not contain any parts.');
+	if (htmlPart === undefined) {
+		throw new Error('HTML email part not found.');
 	}
 
-	emailFirstPartBody = Buffer.from(emailFirstPartBody, 'base64').toString();
+	const emailHtmlBase64 = htmlPart?.body?.data ?? undefined;
+
+	if (emailHtmlBase64 === undefined) {
+		throw new Error('HTML part does not contain the email data.');
+	}
+
+	const emailHtml = Buffer.from(emailHtmlBase64, 'base64').toString();
+
+	const $ = cheerio.load(emailHtml);
+	$('.gmail_quote').remove();
+	$('br').remove();
+
+	console.log($.html({ decodeEntities: false }));
+
+	// https://stackoverflow.com/a/70462715
+	const emailText = convertHtmlToText($.html({ decodeEntities: false }));
+	console.debug(emailText);
 
 	const destinationEmailAddress = messageResponse.data.payload?.headers?.find(
 		(header) => header.name === 'To'
@@ -182,7 +200,7 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 	const channelMessage = await channel.messages.fetch(messageId);
 
 	await channel.send({
-		content: emailFirstPartBody,
+		content: emailText,
 		reply: {
 			messageReference: channelMessage,
 		},
