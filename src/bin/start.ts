@@ -58,12 +58,24 @@ async function sendMessageEmailUpdate({
 	}
 }
 
+bot.on('interactionCreate', async (interaction) => {
+	if (interaction.isCommand() && interaction.commandName === 'dm') {
+		await interaction.user.send(
+			"Hey! I'm an email tunnel for Leon; if you want to send something to his email through Discord, just send a message (optionally with attachments!) in this DM. When Leon replies, I'll notify you in this DM as well!"
+		);
+
+		await interaction.reply({
+			ephemeral: true,
+			content: 'Successfully sent DM!',
+		});
+	}
+});
+
 bot.on('messageCreate', async (message) => {
 	const user = getBotUser();
-	if (
-		message.channel.type === 'DM' ||
-		(message.mentions.has(getBotUser()) && message.author.id !== user.id)
-	) {
+	if (message.author.id === user.id) return;
+
+	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
 		await sendMessageEmailUpdate({ message, type: 'create' });
 	}
 });
@@ -81,6 +93,16 @@ bot.on('messageUpdate', async (message) => {
 });
 
 bot.on('ready', async () => {
+	const application = bot.application ?? undefined;
+	if (application === undefined) {
+		throw new Error('Bot application is undefined.');
+	}
+
+	await application.commands.create({
+		name: 'dm',
+		description: 'Receive a DM from the bot.',
+	});
+
 	const user = getBotUser();
 
 	console.info(`Logged in as ${user.tag ?? 'unknown'}!`);
