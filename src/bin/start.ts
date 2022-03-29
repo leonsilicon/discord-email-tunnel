@@ -41,8 +41,8 @@ async function sendMessageEmailUpdate({
 		for (const attachment of message.attachments.values()) {
 			emailContent += `
 				${xmlEscape(attachment.name ?? 'Unnamed attachment')}: <a href="${
-				attachment.proxyURL
-			}">${attachment.proxyURL}</a>
+				attachment.url
+			}">${attachment.url}</a>
 			`;
 		}
 	}

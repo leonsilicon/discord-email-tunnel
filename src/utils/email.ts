@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+
 import * as process from 'node:process';
 import * as path from 'node:path';
 import { Buffer } from 'node:buffer';
@@ -8,11 +10,42 @@ import type { Message } from '@google-cloud/pubsub';
 import { PubSub } from '@google-cloud/pubsub';
 import { getProjectDir } from 'lion-system';
 import * as cheerio from 'cheerio';
-import { decode as decodeHtmlEntities } from 'html-entities';
-import { convert as convertHtmlToText, htmlToText } from 'html-to-text';
+import { convert as convertHtmlToText } from 'html-to-text';
+import { MessageAttachment } from 'discord.js';
 import { getDiscordBot } from '~/utils/discord.js';
 import { getGmailClient } from '~/utils/google.js';
 import { logDebug } from '~/utils/log.js';
+
+async function getEmailHtml(
+	emailParts: gmail_v1.Schema$MessagePart[]
+): Promise<string> {
+	// First find email HTML
+	async function checkEmailPart(
+		emailPart: gmail_v1.Schema$MessagePart
+	): Promise<string | undefined> {
+		if (emailPart.mimeType === 'text/html') {
+			const emailHtmlBase64 = emailPart?.body?.data ?? undefined;
+
+			if (emailHtmlBase64 === undefined) {
+				throw new Error('HTML part does not contain the email data.');
+			}
+
+			return Buffer.from(emailHtmlBase64, 'base64').toString();
+		}
+
+		for (const part of emailPart.parts ?? []) {
+			const result = await checkEmailPart(part);
+			if (result !== undefined) return result;
+		}
+	}
+
+	for (const emailPart of emailParts) {
+		const result = await checkEmailPart(emailPart);
+		if (result !== undefined) return result;
+	}
+
+	throw new Error('Email HTML part not found.');
+}
 
 export const getSmtpTransport = onetime(async () =>
 	nodemailer.createTransport({
@@ -139,29 +172,78 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 		throw new Error('Email does not contain any parts.');
 	}
 
-	const htmlPart = emailParts?.find((part) => part.mimeType === 'text/html');
-
-	if (htmlPart === undefined) {
-		throw new Error('HTML email part not found.');
-	}
-
-	const emailHtmlBase64 = htmlPart?.body?.data ?? undefined;
-
-	if (emailHtmlBase64 === undefined) {
-		throw new Error('HTML part does not contain the email data.');
-	}
-
-	const emailHtml = Buffer.from(emailHtmlBase64, 'base64').toString();
-
+	const emailHtml = await getEmailHtml(emailParts);
 	const $ = cheerio.load(emailHtml);
 	$('.gmail_quote').remove();
 	$('br').remove();
-
-	console.log($.html({ decodeEntities: false }));
-
-	// https://stackoverflow.com/a/70462715
 	const emailText = convertHtmlToText($.html({ decodeEntities: false }));
-	console.debug(emailText);
+	const attachments: MessageAttachment[] = [];
+
+	async function handleEmailPart({
+		messageId,
+		emailPart,
+		emailAddress,
+	}: {
+		emailAddress: string;
+		messageId: string;
+		emailPart: gmail_v1.Schema$MessagePart;
+	}) {
+		const mimeType = emailPart.mimeType ?? undefined;
+		if (mimeType === undefined) return;
+
+		if (mimeType === 'multipart/alternative') {
+			if (emailPart.parts === undefined) return;
+			for (const part of emailPart.parts) {
+				await handleEmailPart({ emailPart: part, messageId, emailAddress });
+			}
+		} else {
+			const emailPartBody = emailPart.body ?? undefined;
+			if (emailPartBody === undefined) {
+				logDebug(() => `Email part body was undefined.`);
+				return;
+			}
+
+			const filename = emailPart.filename ?? undefined;
+			if (filename === undefined) {
+				logDebug(() => `Filename was undefined.`);
+				return;
+			}
+
+			const emailPartBodyAttachmentId = emailPartBody.attachmentId ?? undefined;
+			if (emailPartBodyAttachmentId === undefined) {
+				logDebug(() => `Email part body attachment ID was undefined.`);
+				return;
+			}
+
+			const imageId =
+				emailPart.headers?.find((header) => header.name === 'X-Attachment-Id')
+					?.value ?? undefined;
+
+			if (imageId === undefined || emailHtml.includes(imageId)) {
+				return;
+			}
+
+			const attachment = await gmail.users.messages.attachments.get({
+				id: emailPartBodyAttachmentId,
+				messageId,
+				userId: emailAddress,
+			});
+
+			const attachmentBase64 = attachment.data.data ?? undefined;
+			if (attachmentBase64 === undefined) {
+				logDebug(() => `base64 of attachment data not found.`);
+				return;
+			}
+
+			attachments.push(
+				new MessageAttachment(Buffer.from(attachmentBase64, 'base64'), filename)
+			);
+		}
+	}
+
+	for (const emailPart of emailParts) {
+		await handleEmailPart({ emailAddress, emailPart, messageId: message.id });
+	}
 
 	const destinationEmailAddress = messageResponse.data.payload?.headers?.find(
 		(header) => header.name === 'To'
@@ -200,7 +282,8 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 	const channelMessage = await channel.messages.fetch(messageId);
 
 	await channel.send({
-		content: emailText,
+		files: attachments,
+		content: /^\s*$/.test(emailText) ? '[no message]' : emailText,
 		reply: {
 			messageReference: channelMessage,
 		},
