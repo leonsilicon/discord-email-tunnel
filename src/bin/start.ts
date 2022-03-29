@@ -1,62 +1,10 @@
-import type { Message, PartialMessage } from 'discord.js';
 import 'dotenv/config.js';
 import * as process from 'node:process';
-import onetime from 'onetime';
-import xmlEscape from 'xml-escape';
-import { getDiscordBot } from '~/utils/discord.js';
-import { getSmtpTransport, setupGmailWebhook } from '~/utils/email.js';
+import { getBotUser, getDiscordBot } from '~/utils/discord.js';
+import { sendMessageEmailUpdate, setupGmailWebhook } from '~/utils/email.js';
 
 await setupGmailWebhook();
 const bot = getDiscordBot();
-
-const getBotUser = onetime(() => {
-	if (bot.user === null) {
-		throw new Error('Bot has not been initialized.');
-	}
-
-	return bot.user;
-});
-
-type SendMessageEmailUpdateProps = {
-	message: Message | PartialMessage;
-	type: 'create' | 'delete' | 'update';
-};
-
-async function sendMessageEmailUpdate({
-	message,
-	type,
-}: SendMessageEmailUpdateProps) {
-	const smtpTransport = await getSmtpTransport();
-
-	let emailContent = xmlEscape(
-		message.content?.replace(new RegExp(`^<@!${getBotUser().id}>`), '') ??
-			'[Empty message]'
-	);
-
-	if (message.attachments.size > 0) {
-		emailContent += `
-			<h1>Attachments</h1>
-		`;
-
-		for (const attachment of message.attachments.values()) {
-			emailContent += `
-				${xmlEscape(attachment.name ?? 'Unnamed attachment')}: <a href="${
-				attachment.url
-			}">${attachment.url}</a>
-			`;
-		}
-	}
-
-	if (type === 'create') {
-		await smtpTransport.sendMail({
-			from: 'admin@leonzalion.com',
-			replyTo: `discord-email-tunnel+${message.channelId}-${message.id}@leonzalion.com`,
-			html: emailContent,
-			subject: `New message from ${message.author!.username}`,
-			to: 'leon@leonzalion.com',
-		});
-	}
-}
 
 bot.on('interactionCreate', async (interaction) => {
 	if (interaction.isCommand() && interaction.commandName === 'dm') {

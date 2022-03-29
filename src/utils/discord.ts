@@ -14,3 +14,13 @@ export const getDiscordBot = onetime(() => {
 
 	return bot;
 });
+
+export const getBotUser = onetime(() => {
+	const bot = getDiscordBot();
+
+	if (bot.user === null) {
+		throw new Error('Bot has not been initialized.');
+	}
+
+	return bot.user;
+});

@@ -12,9 +12,14 @@ import { getProjectDir } from 'lion-system';
 import * as cheerio from 'cheerio';
 import { convert as convertHtmlToText } from 'html-to-text';
 import { MessageAttachment } from 'discord.js';
-import { getDiscordBot } from '~/utils/discord.js';
+import type {
+	PartialMessage as DiscordPartialMessage,
+	Message as DiscordMessage,
+} from 'discord.js';
+import xmlEscape from 'xml-escape';
 import { getGmailClient } from '~/utils/google.js';
 import { logDebug } from '~/utils/log.js';
+import { getBotUser, getDiscordBot } from '~/utils/discord.js';
 
 async function getEmailHtml(
 	emailParts: gmail_v1.Schema$MessagePart[]
@@ -306,4 +311,45 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 			messageReference: channelMessage,
 		},
 	});
+}
+
+type SendMessageEmailUpdateProps = {
+	message: DiscordMessage | DiscordPartialMessage;
+	type: 'create' | 'delete' | 'update';
+};
+
+export async function sendMessageEmailUpdate({
+	message,
+	type,
+}: SendMessageEmailUpdateProps) {
+	const smtpTransport = await getSmtpTransport();
+
+	let emailContent = xmlEscape(
+		message.content?.replace(new RegExp(`^<@!${getBotUser().id}>`), '') ??
+			'[Empty message]'
+	);
+
+	if (message.attachments.size > 0) {
+		emailContent += `
+			<h1>Attachments</h1>
+		`;
+
+		for (const attachment of message.attachments.values()) {
+			emailContent += `
+				${xmlEscape(attachment.name ?? 'Unnamed attachment')}: <a href="${
+				attachment.url
+			}">${attachment.url}</a>
+			`;
+		}
+	}
+
+	if (type === 'create') {
+		await smtpTransport.sendMail({
+			from: 'admin@leonzalion.com',
+			replyTo: `discord-email-tunnel+${message.channelId}-${message.id}@leonzalion.com`,
+			html: emailContent,
+			subject: `New message from ${message.author!.username}`,
+			to: 'leon@leonzalion.com',
+		});
+	}
 }
