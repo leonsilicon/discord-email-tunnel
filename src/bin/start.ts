@@ -1,6 +1,6 @@
+import type { Message, PartialMessage } from 'discord.js';
 import 'dotenv/config.js';
 import * as process from 'node:process';
-import type { Message, PartialMessage } from 'discord.js';
 import onetime from 'onetime';
 import xmlEscape from 'xml-escape';
 import { getDiscordBot } from '~/utils/discord.js';
@@ -59,7 +59,11 @@ async function sendMessageEmailUpdate({
 }
 
 bot.on('messageCreate', async (message) => {
-	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
+	const user = getBotUser();
+	if (
+		message.channel.type === 'DM' ||
+		(message.mentions.has(getBotUser()) && message.author.id !== user.id)
+	) {
 		await sendMessageEmailUpdate({ message, type: 'create' });
 	}
 });

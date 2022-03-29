@@ -234,7 +234,8 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 				emailPart.headers?.find((header) => header.name === 'X-Attachment-Id')
 					?.value ?? undefined;
 
-			console.log(emailHtml);
+			logDebug(() => `Email HTML: ${emailHtml}`);
+
 			if (imageId === undefined || !emailHtml.includes(imageId)) {
 				logDebug(() => `Image ID not found in HTML.`);
 				return;
