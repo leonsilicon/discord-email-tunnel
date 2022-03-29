@@ -21,6 +21,10 @@ import { getGmailClient } from '~/utils/google.js';
 import { logDebug } from '~/utils/log.js';
 import { getBotUser, getDiscordBot } from '~/utils/discord.js';
 
+// Map from channel IDs to a message ID.
+// This map contains the channel ID that corresponds with a particular user so that the emails are sent in replies
+export const discordChannelToMessageIdMap = new Map<string, string>();
+
 async function getEmailHtml(
 	emailParts: gmail_v1.Schema$MessagePart[]
 ): Promise<string> {
@@ -344,12 +348,34 @@ export async function sendMessageEmailUpdate({
 	}
 
 	if (type === 'create') {
-		await smtpTransport.sendMail({
+		const replyMessageId = discordChannelToMessageIdMap.get(message.channelId);
+
+		const messageAuthor = message.author?.username ?? 'Unknown User';
+
+		const { channel } = message;
+
+		let emailSubject: string;
+		if (channel.type === 'GUILD_TEXT') {
+			emailSubject = `New Discord message from ${messageAuthor} in #${channel.name} of ${channel.guild.name}`;
+		} else if (channel.type === 'DM') {
+			emailSubject = `New Discord message from ${messageAuthor} in DMs`;
+		} else {
+			emailSubject = `New Discord message from ${messageAuthor}`;
+		}
+
+		const sentMessageInfo = await smtpTransport.sendMail({
+			inReplyTo: replyMessageId,
+			references: replyMessageId,
 			from: 'admin@leonzalion.com',
 			replyTo: `discord-email-tunnel+${message.channelId}-${message.id}@leonzalion.com`,
 			html: emailContent,
-			subject: `New message from ${message.author!.username}`,
+			subject: emailSubject,
 			to: 'leon@leonzalion.com',
 		});
+
+		discordChannelToMessageIdMap.set(
+			message.channelId,
+			sentMessageInfo.messageId
+		);
 	}
 }
