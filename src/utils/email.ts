@@ -17,6 +17,7 @@ import type {
 	Message as DiscordMessage,
 } from 'discord.js';
 import xmlEscape from 'xml-escape';
+import { outdent } from 'outdent';
 import { getGmailClient } from '~/utils/google.js';
 import { logDebug } from '~/utils/log.js';
 import { getBotUser, getDiscordBot } from '~/utils/discord.js';
@@ -328,9 +329,15 @@ export async function sendMessageEmailUpdate({
 }: SendMessageEmailUpdateProps) {
 	const smtpTransport = await getSmtpTransport();
 
-	let emailContent = xmlEscape(
+	let emailContent = outdent`
+		<strong>
+			From ${message.author?.username ?? 'Anonymous User'}
+		</strong>\n
+	`;
+
+	emailContent += xmlEscape(
 		message.content?.replace(new RegExp(`^<@!${getBotUser().id}>`), '') ??
-			'[Empty message]'
+			'[Missing message content]'
 	);
 
 	if (message.attachments.size > 0) {
