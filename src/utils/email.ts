@@ -172,11 +172,26 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 		throw new Error('Email does not contain any parts.');
 	}
 
-	const emailHtml = await getEmailHtml(emailParts);
-	const $ = cheerio.load(emailHtml);
-	$('.gmail_quote').remove();
+	const initialEmailHtml = await getEmailHtml(emailParts);
+
+	const $ = cheerio.load(initialEmailHtml);
+	$('.gmail_attr + blockquote').remove();
+	$('.gmail_attr').remove();
 	$('br').remove();
-	const emailText = convertHtmlToText($.html({ decodeEntities: false }));
+
+	const emailHtml = $.html({ decodeEntities: false });
+
+	const emailText = convertHtmlToText($.html({ decodeEntities: false }), {
+		selectors: [
+			{
+				selector: 'blockquote',
+				options: {
+					leadingLineBreaks: 1,
+					trailingLineBreaks: 1,
+				},
+			},
+		],
+	});
 	const attachments: MessageAttachment[] = [];
 
 	async function handleEmailPart({
@@ -219,7 +234,9 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 				emailPart.headers?.find((header) => header.name === 'X-Attachment-Id')
 					?.value ?? undefined;
 
-			if (imageId === undefined || emailHtml.includes(imageId)) {
+			console.log(emailHtml);
+			if (imageId === undefined || !emailHtml.includes(imageId)) {
+				logDebug(() => `Image ID not found in HTML.`);
 				return;
 			}
 

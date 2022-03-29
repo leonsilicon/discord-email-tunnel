@@ -59,7 +59,6 @@ async function sendMessageEmailUpdate({
 }
 
 bot.on('messageCreate', async (message) => {
-	if (message.author.id === '546885051334524949') return;
 	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
 		await sendMessageEmailUpdate({ message, type: 'create' });
 	}
