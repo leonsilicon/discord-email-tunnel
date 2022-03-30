@@ -305,14 +305,22 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 		throw new Error(`Channel with ID ${channelId} is not a text channel.`);
 	}
 
-	const channelMessage = await channel.messages.fetch(messageId);
+	let channelMessage: DiscordMessage | undefined;
+	try {
+		channelMessage = await channel.messages.fetch(messageId);
+	} catch {
+		channelMessage = undefined;
+	}
 
 	await channel.send({
 		files: attachments,
 		content: /^\s*$/.test(emailText) ? '[no message]' : emailText,
-		reply: {
-			messageReference: channelMessage,
-		},
+		reply:
+			channelMessage === undefined
+				? undefined
+				: {
+						messageReference: channelMessage,
+				  },
 	});
 }
 
