@@ -1,24 +1,24 @@
 /* eslint-disable no-await-in-loop */
 
-import * as process from 'node:process';
 import { Buffer } from 'node:buffer';
-import * as nodemailer from 'nodemailer';
-import onetime from 'onetime';
-import type { gmail_v1 } from 'googleapis';
+import * as process from 'node:process';
 import type { Message } from '@google-cloud/pubsub';
 import { PubSub } from '@google-cloud/pubsub';
 import * as cheerio from 'cheerio';
-import { convert as convertHtmlToText } from 'html-to-text';
-import { MessageAttachment } from 'discord.js';
 import type {
-	PartialMessage as DiscordPartialMessage,
 	Message as DiscordMessage,
+	PartialMessage as DiscordPartialMessage,
 } from 'discord.js';
-import xmlEscape from 'xml-escape';
+import { MessageAttachment } from 'discord.js';
+import type { gmail_v1 } from 'googleapis';
+import { convert as convertHtmlToText } from 'html-to-text';
+import * as nodemailer from 'nodemailer';
+import onetime from 'onetime';
 import { outdent } from 'outdent';
+import xmlEscape from 'xml-escape';
+import { getBotUser, getDiscordBot } from '~/utils/discord.js';
 import { getGmailClient } from '~/utils/google.js';
 import { logDebug } from '~/utils/log.js';
-import { getBotUser, getDiscordBot } from '~/utils/discord.js';
 
 // Map from channel IDs to a message ID.
 // This map contains the channel ID that corresponds with a particular user so that the emails are sent in replies
@@ -346,10 +346,31 @@ export async function sendMessageEmailUpdate({
 		<br />
 	`;
 
-	emailContent += xmlEscape(
-		message.content?.replace(new RegExp(`^<@!${getBotUser().id}>`), '') ??
-			'[Missing message content]'
+	const messageContent = message.content?.replace(
+		new RegExp(`^<@!${getBotUser().id}>`),
+		''
 	);
+
+	let replyMessage: DiscordMessage | undefined;
+	if (message.reference?.messageId !== undefined) {
+		try {
+			replyMessage = await message.channel.messages.fetch(
+				message.reference.messageId
+			);
+		} catch {
+			// reply not found
+		}
+	}
+
+	if (replyMessage !== undefined) {
+		emailContent += outdent`
+			<strong>Replied to <u>${replyMessage.author.tag}</u> who said: </strong>
+			${replyMessage.content}
+			<br/>
+		`;
+	}
+
+	emailContent += xmlEscape(messageContent ?? '[empty message]');
 
 	if (message.attachments.size > 0) {
 		emailContent += `
