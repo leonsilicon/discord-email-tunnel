@@ -346,12 +346,22 @@ export async function sendMessageEmailUpdate({
 		<br />
 	`;
 
-	let messageContent = message.content?.replace(new RegExp(`^<@!${getBotUser().id}>`), '');
+	let messageContent = message.content?.replace(
+		new RegExp(`^<@!${getBotUser().id}>`),
+		''
+	);
+
 	// Fetch the message's reply if the message has just a ping and nothing else
-	if (!messageContent && message?.reference?.messageId) {
-		const reply = await message.channel.messages.fetch(message.reference.messageId);
+	if (
+		messageContent === undefined &&
+		message?.reference?.messageId !== undefined
+	) {
+		const reply = await message.channel.messages.fetch(
+			message.reference.messageId
+		);
 		messageContent = reply.content;
 	}
+
 	emailContent += xmlEscape(messageContent ?? '[Missing message content]');
 
 	if (message.attachments.size > 0) {
