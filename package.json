@@ -18,7 +18,7 @@
 	"scripts": {
 		"build": "node-ts ./scripts/build.ts",
 		"dev": "node-ts ./bin/start.ts",
-		"start": "node ./dist/bin/start.ts",
+		"start": "node ./dist/bin/start.js",
 		"test": "vitest run",
 		"lint": "eslint --cache --fix .",
 		"prettier": "prettier --write .",
