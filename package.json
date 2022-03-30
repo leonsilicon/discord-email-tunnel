@@ -16,7 +16,6 @@
 	"type": "module",
 	"exports": "./index.js",
 	"scripts": {
-		"prepare": "lion-git-hooks",
 		"build": "node-ts ./scripts/build.ts",
 		"start": "node-ts ./src/bin/start.ts",
 		"test": "vitest run",
