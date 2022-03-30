@@ -16,7 +16,7 @@ import * as nodemailer from 'nodemailer';
 import onetime from 'onetime';
 import { outdent } from 'outdent';
 import xmlEscape from 'xml-escape';
-import { getBotUser, getDiscordBot } from '~/utils/discord.js';
+import { getDiscordBot } from '~/utils/discord.js';
 import { getGmailClient } from '~/utils/google.js';
 import { logDebug } from '~/utils/log.js';
 
@@ -346,9 +346,24 @@ export async function sendMessageEmailUpdate({
 		<br />
 	`;
 
-	const messageContent = message.content?.replace(
-		new RegExp(`^<@!${getBotUser().id}>`),
-		''
+	let messageContent = message.content ?? '[Empty message]';
+	const pingMatches = messageContent.matchAll(/<@!(\d+)>/g);
+
+	const membersMap: Record<string, string> = {};
+	for (const pingMatch of pingMatches) {
+		const memberId = pingMatch[1]!;
+		const pingedMember = await message.guild?.members.fetch(memberId);
+		membersMap[memberId] = pingedMember?.user.tag ?? '[Unknown User]';
+	}
+
+	messageContent = messageContent.replaceAll(
+		/<@!(\d+)>/g,
+		(_substring, pingMatch: string) =>
+			outdent`
+				<span style='background-color: hsl(235, 85.6%, 64.7%); border-radius: 5px; color: white; padding: 2px;'>
+					@${membersMap[pingMatch]!}
+				</span>
+			`
 	);
 
 	let replyMessage: DiscordMessage | undefined;
