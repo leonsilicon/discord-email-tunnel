@@ -362,9 +362,9 @@ export async function sendMessageEmailUpdate({
 		/&lt;@!(\d+)&gt;/g,
 		(_substring, pingMatch: string) =>
 			outdent`
-				<span style='background-color: hsl(235, 85.6%, 64.7%); border-radius: 5px; color: white; padding: 2px;'>
-					@${xmlEscape(membersMap[pingMatch]!)}
-				</span>
+				<span style='background-color: hsl(235, 85.6%, 64.7%); border-radius: 5px; color: white; padding: 2px;'>@${xmlEscape(
+					membersMap[pingMatch]!
+				)}</span>
 			`
 	);
 
