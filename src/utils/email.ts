@@ -329,10 +329,7 @@ export async function sendMessageEmailUpdate({
 
 	const messageAuthor = message.author;
 
-	const authorName =
-		messageAuthor === null
-			? 'Unknown User'
-			: `${messageAuthor.username}#${messageAuthor.tag}` ?? 'Unknown User';
+	const authorName = messageAuthor?.tag ?? 'Unknown User';
 
 	let emailContent = outdent`
 		<strong>
@@ -365,10 +362,7 @@ export async function sendMessageEmailUpdate({
 
 		const messageAuthor = message.author;
 
-		const authorName =
-			messageAuthor === null
-				? 'Unknown User'
-				: `${messageAuthor.username}#${messageAuthor.tag}` ?? 'Unknown User';
+		const authorName = messageAuthor?.tag ?? 'Unknown User';
 
 		const { channel } = message;
 
