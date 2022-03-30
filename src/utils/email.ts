@@ -1,14 +1,12 @@
 /* eslint-disable no-await-in-loop */
 
 import * as process from 'node:process';
-import * as path from 'node:path';
 import { Buffer } from 'node:buffer';
 import * as nodemailer from 'nodemailer';
 import onetime from 'onetime';
 import type { gmail_v1 } from 'googleapis';
 import type { Message } from '@google-cloud/pubsub';
 import { PubSub } from '@google-cloud/pubsub';
-import { getProjectDir } from 'lion-system';
 import * as cheerio from 'cheerio';
 import { convert as convertHtmlToText } from 'html-to-text';
 import { MessageAttachment } from 'discord.js';
@@ -71,11 +69,11 @@ export const getSmtpTransport = onetime(async () =>
 );
 
 export async function setupGmailWebhook() {
-	const projectDir = getProjectDir(import.meta.url);
-
-	const keyFile = path.join(projectDir, 'service-account-file.json');
 	const pubsub = new PubSub({
-		keyFile,
+		credentials: {
+			client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+			private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY.replace(/\\n/g, '\n'),
+		},
 		projectId: 'discord-email-tunnel',
 	});
 
@@ -329,9 +327,16 @@ export async function sendMessageEmailUpdate({
 }: SendMessageEmailUpdateProps) {
 	const smtpTransport = await getSmtpTransport();
 
+	const messageAuthor = message.author;
+
+	const authorName =
+		messageAuthor === null
+			? 'Unknown User'
+			: `${messageAuthor.username}#${messageAuthor.tag}` ?? 'Unknown User';
+
 	let emailContent = outdent`
 		<strong>
-			From ${message.author?.username ?? 'Anonymous User'}
+			From ${authorName}:
 		</strong>
 		<br />
 	`;
@@ -358,17 +363,22 @@ export async function sendMessageEmailUpdate({
 	if (type === 'create') {
 		const replyMessageId = discordChannelToMessageIdMap.get(message.channelId);
 
-		const messageAuthor = message.author?.username ?? 'Unknown User';
+		const messageAuthor = message.author;
+
+		const authorName =
+			messageAuthor === null
+				? 'Unknown User'
+				: `${messageAuthor.username}#${messageAuthor.tag}` ?? 'Unknown User';
 
 		const { channel } = message;
 
 		let emailSubject: string;
 		if (channel.type === 'GUILD_TEXT') {
-			emailSubject = `New Discord message from ${messageAuthor} in #${channel.name} of ${channel.guild.name}`;
+			emailSubject = `New Discord message from ${authorName} in #${channel.name} of ${channel.guild.name}`;
 		} else if (channel.type === 'DM') {
-			emailSubject = `New Discord message from ${messageAuthor} in DMs`;
+			emailSubject = `New Discord message from ${authorName} in DMs`;
 		} else {
-			emailSubject = `New Discord message from ${messageAuthor}`;
+			emailSubject = `New Discord message from ${authorName}`;
 		}
 
 		const sentMessageInfo = await smtpTransport.sendMail({
