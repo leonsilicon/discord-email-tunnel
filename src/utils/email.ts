@@ -356,17 +356,17 @@ export async function sendMessageEmailUpdate({
 		membersMap[memberId] = pingedMember?.user.tag ?? '[Unknown User]';
 	}
 
+	emailContent += xmlEscape(messageContent ?? '[empty message]');
+
 	messageContent = messageContent.replaceAll(
 		/<@!(\d+)>/g,
 		(_substring, pingMatch: string) =>
 			outdent`
 				<span style='background-color: hsl(235, 85.6%, 64.7%); border-radius: 5px; color: white; padding: 2px;'>
-					@${membersMap[pingMatch]!}
+					@${xmlEscape(membersMap[pingMatch]!)}
 				</span>
 			`
 	);
-
-	emailContent += xmlEscape(messageContent ?? '[empty message]');
 
 	let replyMessage: DiscordMessage | undefined;
 	if (message.reference?.messageId !== undefined) {
@@ -421,6 +421,7 @@ export async function sendMessageEmailUpdate({
 			emailSubject = `New Discord message from ${authorName}`;
 		}
 
+		console.log(emailContent);
 		const sentMessageInfo = await smtpTransport.sendMail({
 			inReplyTo: replyMessageId,
 			references: replyMessageId,
