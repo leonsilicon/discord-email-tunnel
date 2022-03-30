@@ -68,3 +68,12 @@ bot.on('ready', async () => {
 });
 
 await bot.login(process.env.DISCORD_TOKEN);
+
+// Prevent unhandled rejections from crashing the Discord bot
+process.on('unhandledRejection', (error) => {
+	console.error(error);
+});
+
+process.on('uncaughtException', (error) => {
+	console.error(error);
+});
