@@ -1,8 +1,9 @@
 import * as process from 'node:process';
 import onetime from 'onetime';
 import { google } from 'googleapis';
+import type { OAuth2Client } from 'google-auth-library';
 
-export const getOauth2Client = onetime(() => {
+export const getOauth2Client = onetime((): OAuth2Client => {
 	const oauth2Client = new google.auth.OAuth2({
 		clientId: process.env.GOOGLE_CLOUD_CLIENT_ID,
 		clientSecret: process.env.GOOGLE_CLOUD_CLIENT_SECRET,
