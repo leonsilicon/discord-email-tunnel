@@ -366,6 +366,8 @@ export async function sendMessageEmailUpdate({
 			`
 	);
 
+	emailContent += xmlEscape(messageContent ?? '[empty message]');
+
 	let replyMessage: DiscordMessage | undefined;
 	if (message.reference?.messageId !== undefined) {
 		try {
@@ -379,13 +381,13 @@ export async function sendMessageEmailUpdate({
 
 	if (replyMessage !== undefined) {
 		emailContent += outdent`
-			<strong>Replied to <u>${replyMessage.author.tag}</u> who said: </strong>
-			${replyMessage.content}
+			<strong>Replied to <u>${xmlEscape(
+				replyMessage.author.tag
+			)}</u> who said: </strong>
+			${xmlEscape(replyMessage.content)}
 			<br/>
 		`;
 	}
-
-	emailContent += xmlEscape(messageContent ?? '[empty message]');
 
 	if (message.attachments.size > 0) {
 		emailContent += `
