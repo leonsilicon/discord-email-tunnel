@@ -1,6 +1,6 @@
 # Discord Email Tunnel
 
-Synchronous communication isn't the most efficient way of communication.
+Synchronous text-based communication isn't very efficient, but Discord is a convenient communication platform. This project acts as a proxy/tunnel between Discord messages and emails, allowing you to use your email to asynchronously communicate with others on Discord.
 
 ## Google Cloud Scopes
 
