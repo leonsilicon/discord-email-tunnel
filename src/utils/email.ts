@@ -332,7 +332,8 @@ export async function sendMessageEmailUpdate({
 	let emailContent = outdent`
 		<strong>
 			From ${message.author?.username ?? 'Anonymous User'}
-		</strong>\n
+		</strong>
+		<br />
 	`;
 
 	emailContent += xmlEscape(

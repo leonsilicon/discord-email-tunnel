@@ -20,7 +20,16 @@ bot.on('interactionCreate', async (interaction) => {
 });
 
 bot.on('messageCreate', async (message) => {
+	// Automatically delete messages in the #bot-commands channel
+	try {
+		if (message.channelId === '958414884079566869') {
+			await message.delete();
+			return;
+		}
+	} catch {}
+
 	const user = getBotUser();
+
 	if (message.author.id === user.id) return;
 
 	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
