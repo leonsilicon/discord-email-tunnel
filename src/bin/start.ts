@@ -1,5 +1,5 @@
 import 'dotenv/config.js';
-import * as process from 'node:process';
+import process from 'node:process';
 import { getBotUser, getDiscordBot } from '~/utils/discord.js';
 import { sendMessageEmailUpdate, setupGmailWebhook } from '~/utils/email.js';
 
