@@ -383,11 +383,12 @@ export async function sendMessageEmailUpdate({
 
 	if (replyMessage !== undefined) {
 		emailContent += outdent`
+			<br />
 			<strong>Replied to <u>${xmlEscape(
 				replyMessage.author.tag
 			)}</u> who said: </strong>
+			<br />
 			${xmlEscape(replyMessage.content)}
-			<br/>
 		`;
 	}
 
