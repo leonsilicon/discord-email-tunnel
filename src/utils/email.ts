@@ -22,7 +22,7 @@ import { logDebug } from '~/utils/log.js';
 
 async function escapeAndReplacePings(
 	message: DiscordMessage | DiscordPartialMessage
-) {
+): Promise<string> {
 	let content = message.content ?? '[empty message]';
 
 	const pingMatches = content.matchAll(/<@!(\d+)>/g);
@@ -45,6 +45,8 @@ async function escapeAndReplacePings(
 				)}</span>
 			`
 	);
+
+	return content;
 }
 
 // Map from channel IDs to a message ID.
@@ -373,10 +375,12 @@ export async function sendMessageEmailUpdate({
 		<br />
 	`;
 
-	let messageContent =
+	const messageContent =
 		message.content === undefined || message.content === ''
-			? escapeAndReplacePings(message)
+			? await escapeAndReplacePings(message)
 			: '[Empty message]';
+
+	emailContent += messageContent;
 
 	let replyMessage: DiscordMessage | undefined;
 	if (message.reference?.messageId !== undefined) {
