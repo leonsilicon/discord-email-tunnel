@@ -218,6 +218,8 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 
 	const emailHtml = $.html({ decodeEntities: false });
 
+	logDebug(() => `Email HTML: ${emailHtml}`);
+
 	const emailText = convertHtmlToText($.html({ decodeEntities: false }), {
 		selectors: [
 			{
@@ -367,10 +369,7 @@ export async function getEmailContentFromMessage(
 		<br />
 	`;
 
-	const messageContent =
-		message.content === undefined || message.content === ''
-			? await escapeAndReplacePings(message)
-			: '[Empty message]';
+	const messageContent = await escapeAndReplacePings(message);
 
 	emailContent += messageContent;
 
