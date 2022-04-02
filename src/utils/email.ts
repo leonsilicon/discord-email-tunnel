@@ -20,6 +20,33 @@ import { getDiscordBot } from '~/utils/discord.js';
 import { getGmailClient } from '~/utils/google.js';
 import { logDebug } from '~/utils/log.js';
 
+async function escapeAndReplacePings(
+	message: DiscordMessage | DiscordPartialMessage
+) {
+	let content = message.content ?? '[empty message]';
+
+	const pingMatches = content.matchAll(/<@!(\d+)>/g);
+
+	const membersMap: Record<string, string> = {};
+	for (const pingMatch of pingMatches) {
+		const memberId = pingMatch[1]!;
+		const pingedMember = await message.guild?.members.fetch(memberId);
+		membersMap[memberId] = pingedMember?.user.tag ?? '[Unknown User]';
+	}
+
+	content = xmlEscape(content);
+
+	content = content.replaceAll(
+		/&lt;@!(\d+)&gt;/g,
+		(_substring, pingMatch: string) =>
+			outdent`
+				<span style='background-color: hsl(235, 85.6%, 64.7%); border-radius: 5px; color: white; padding: 2px;'>@${xmlEscape(
+					membersMap[pingMatch]!
+				)}</span>
+			`
+	);
+}
+
 // Map from channel IDs to a message ID.
 // This map contains the channel ID that corresponds with a particular user so that the emails are sent in replies
 export const discordChannelToMessageIdMap = new Map<string, string>();
@@ -338,29 +365,10 @@ export async function getEmailContentFromMessage(
 		<br />
 	`;
 
-	let messageContent = message.content ?? '[Empty message]';
-	const pingMatches = messageContent.matchAll(/<@!(\d+)>/g);
-
-	const membersMap: Record<string, string> = {};
-	for (const pingMatch of pingMatches) {
-		const memberId = pingMatch[1]!;
-		const pingedMember = await message.guild?.members.fetch(memberId);
-		membersMap[memberId] = pingedMember?.user.tag ?? '[Unknown User]';
-	}
-
-	messageContent = xmlEscape(messageContent);
-
-	messageContent = messageContent.replaceAll(
-		/&lt;@!(\d+)&gt;/g,
-		(_substring, pingMatch: string) =>
-			outdent`
-				<span style='background-color: hsl(235, 85.6%, 64.7%); border-radius: 5px; color: white; padding: 2px;'>@${xmlEscape(
-					membersMap[pingMatch]!
-				)}</span>
-			`
-	);
-
-	emailContent += messageContent ?? '[empty message]';
+	let messageContent =
+		message.content === undefined || message.content === ''
+			? escapeAndReplacePings(message)
+			: '[Empty message]';
 
 	let replyMessage: DiscordMessage | undefined;
 	if (message.reference?.messageId !== undefined) {
@@ -380,7 +388,8 @@ export async function getEmailContentFromMessage(
 				replyMessage.author.tag
 			)}</u> who said: </strong>
 			<br />
-			${xmlEscape(replyMessage.content)}
+			${escapeAndReplacePings(replyMessage)}
+			<br />
 		`;
 	}
 
