@@ -353,17 +353,9 @@ async function onEmailReply({ message, emailAddress }: OnEmailReplyProps) {
 	});
 }
 
-type SendMessageEmailUpdateProps = {
-	message: DiscordMessage | DiscordPartialMessage;
-	type: 'create' | 'delete' | 'update';
-};
-
-export async function sendMessageEmailUpdate({
-	message,
-	type,
-}: SendMessageEmailUpdateProps) {
-	const smtpTransport = await getSmtpTransport();
-
+export async function getEmailContentFromMessage(
+	message: DiscordMessage | DiscordPartialMessage
+): Promise<string> {
 	const messageAuthor = message.author;
 
 	const authorName = messageAuthor?.tag ?? 'Unknown User';
@@ -419,25 +411,48 @@ export async function sendMessageEmailUpdate({
 		}
 	}
 
+	logDebug(() => `Email content: ${emailContent}`);
+
+	return emailContent;
+}
+
+export async function getEmailSubjectFromMessage(
+	message: DiscordMessage | DiscordPartialMessage
+): Promise<string> {
+	const messageAuthor = message.author;
+
+	const authorName = messageAuthor?.tag ?? 'Unknown User';
+
+	const { channel } = message;
+
+	let emailSubject: string;
+	if (channel.type === 'GUILD_TEXT') {
+		emailSubject = `New Discord message from ${authorName} in #${channel.name} of ${channel.guild.name}`;
+	} else if (channel.type === 'DM') {
+		emailSubject = `New Discord message from ${authorName} in DMs`;
+	} else {
+		emailSubject = `New Discord message from ${authorName}`;
+	}
+
+	return emailSubject;
+}
+
+type SendMessageEmailUpdateProps = {
+	message: DiscordMessage | DiscordPartialMessage;
+	type: 'create' | 'delete' | 'update';
+};
+
+export async function sendMessageEmailUpdate({
+	message,
+	type,
+}: SendMessageEmailUpdateProps) {
+	const smtpTransport = await getSmtpTransport();
+
 	if (type === 'create') {
 		const replyMessageId = discordChannelToMessageIdMap.get(message.channelId);
 
-		const messageAuthor = message.author;
-
-		const authorName = messageAuthor?.tag ?? 'Unknown User';
-
-		const { channel } = message;
-
-		let emailSubject: string;
-		if (channel.type === 'GUILD_TEXT') {
-			emailSubject = `New Discord message from ${authorName} in #${channel.name} of ${channel.guild.name}`;
-		} else if (channel.type === 'DM') {
-			emailSubject = `New Discord message from ${authorName} in DMs`;
-		} else {
-			emailSubject = `New Discord message from ${authorName}`;
-		}
-
-		logDebug(() => `Email content: ${emailContent}`);
+		const emailContent = await getEmailContentFromMessage(message);
+		const emailSubject = await getEmailSubjectFromMessage(message);
 
 		const sentMessageInfo = await smtpTransport.sendMail({
 			inReplyTo: replyMessageId,
