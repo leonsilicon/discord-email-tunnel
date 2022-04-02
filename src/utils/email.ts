@@ -391,7 +391,7 @@ export async function getEmailContentFromMessage(
 				replyMessage.author.tag
 			)}</u> who said: </strong>
 			<br />
-			${escapeAndReplacePings(replyMessage)}
+			${await escapeAndReplacePings(replyMessage)}
 			<br />
 		`;
 	}
