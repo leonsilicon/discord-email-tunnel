@@ -1,7 +1,7 @@
 import { outdent } from 'outdent';
 import xmlEscape from 'xml-escape';
 import { MessageTransformPayload } from '~/types/message.js';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import Markdown from 'markdown-it';
 
 /**
