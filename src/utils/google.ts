@@ -16,11 +16,3 @@ export const getOauth2Client = onetime((): OAuth2Client => {
 
 	return oauth2Client;
 });
-
-export const getGmailClient = onetime(() => {
-	const oauth2Client = getOauth2Client();
-
-	const gmail = google.gmail({ auth: oauth2Client, version: 'v1' });
-
-	return gmail;
-});

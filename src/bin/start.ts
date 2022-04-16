@@ -1,9 +1,12 @@
 import 'dotenv/config.js';
 import process from 'node:process';
 import { getBotUser, getDiscordBot } from '~/utils/discord.js';
-import { sendMessageEmailUpdate, setupGmailWebhook } from '~/utils/email.js';
+import { onEmailReply } from '~/utils/email/on-reply.js';
+import { sendEmailAboutDiscordMessage } from '~/utils/email/send.js';
+import { setupGmailWebhook } from '~/utils/email/webhook.js';
 
-await setupGmailWebhook();
+await setupGmailWebhook(onEmailReply);
+
 const bot = getDiscordBot();
 
 bot.on('interactionCreate', async (interaction) => {
@@ -33,19 +36,19 @@ bot.on('messageCreate', async (message) => {
 	if (message.author.id === user.id) return;
 
 	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
-		await sendMessageEmailUpdate({ message, type: 'create' });
+		await sendEmailAboutDiscordMessage({ message, type: 'create' });
 	}
 });
 
 bot.on('messageDelete', async (message) => {
 	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
-		await sendMessageEmailUpdate({ message, type: 'delete' });
+		await sendEmailAboutDiscordMessage({ message, type: 'delete' });
 	}
 });
 
 bot.on('messageUpdate', async (message) => {
 	if (message.channel.type === 'DM' || message.mentions.has(getBotUser())) {
-		await sendMessageEmailUpdate({ message, type: 'update' });
+		await sendEmailAboutDiscordMessage({ message, type: 'update' });
 	}
 });
 
