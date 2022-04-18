@@ -1,13 +1,15 @@
+import * as cheerio from 'cheerio';
+import type { Message as DiscordMessage } from 'discord.js';
 import { MessageAttachment } from 'discord.js';
-import { gmail_v1 } from 'googleapis';
+import type { gmail_v1 } from 'googleapis';
+import { convert as convertHtmlToText } from 'html-to-text';
+import { Buffer } from 'node:buffer';
+
+import type { GmailWebhookCallbackProps } from '~/types/email.js';
 import { getDiscordBot } from '~/utils/discord.js';
 import { getGmailClient } from '~/utils/email/client.js';
 import { getEmailHtml } from '~/utils/email/html.js';
 import { logDebug } from '~/utils/log.js';
-import * as cheerio from 'cheerio';
-import { GmailWebhookCallbackProps } from '~/types/email.js';
-import { convert as convertHtmlToText } from 'html-to-text';
-import type { Message as DiscordMessage } from 'discord.js';
 
 /**
 	Called when the user replies to an email that was sent by discord-email-tunnel
@@ -79,6 +81,7 @@ export async function onEmailReply({
 		if (mimeType === 'multipart/alternative') {
 			if (emailPart.parts === undefined) return;
 			for (const part of emailPart.parts) {
+				// eslint-disable-next-line no-await-in-loop
 				await handleEmailPart({ emailPart: part, messageId, emailAddress });
 			}
 		} else {
@@ -130,6 +133,7 @@ export async function onEmailReply({
 	}
 
 	for (const emailPart of emailParts) {
+		// eslint-disable-next-line no-await-in-loop
 		await handleEmailPart({ emailAddress, emailPart, messageId: message.id });
 	}
 

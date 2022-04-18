@@ -1,5 +1,6 @@
-import onetime from 'onetime';
 import { google } from 'googleapis';
+import onetime from 'onetime';
+
 import { getOauth2Client } from '~/utils/google.js';
 
 export const getGmailClient = onetime(() => {

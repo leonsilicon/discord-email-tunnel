@@ -1,7 +1,8 @@
-import {
+import type {
 	Message as DiscordMessage,
 	PartialMessage as DiscordPartialMessage,
 } from 'discord.js';
+
 import { createEmailContentFromDiscordMessage } from '~/utils/email/content.js';
 import { getSmtpTransport } from '~/utils/email/smtp.js';
 import { createEmailSubjectFromDiscordMessage } from '~/utils/email/subject.js';

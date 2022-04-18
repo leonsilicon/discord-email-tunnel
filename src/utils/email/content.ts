@@ -4,6 +4,7 @@ import type {
 } from 'discord.js';
 import { outdent } from 'outdent';
 import xmlEscape from 'xml-escape';
+
 import { transformMessageToHTML } from '~/utils/email/message.js';
 import { logDebug } from '~/utils/log.js';
 

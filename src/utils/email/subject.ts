@@ -1,4 +1,4 @@
-import {
+import type {
 	Message as DiscordMessage,
 	PartialMessage as DiscordPartialMessage,
 } from 'discord.js';

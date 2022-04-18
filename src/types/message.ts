@@ -1,4 +1,4 @@
-import { Message, PartialMessage } from 'discord.js';
+import type { Message, PartialMessage } from 'discord.js';
 
 export type MessageContext = Omit<Message | PartialMessage, 'content'>;
 

@@ -1,8 +1,9 @@
-import { outdent } from 'outdent';
-import xmlEscape from 'xml-escape';
-import { MessageTransformPayload } from '~/types/message.js';
 import DOMPurify from 'isomorphic-dompurify';
 import Markdown from 'markdown-it';
+import { outdent } from 'outdent';
+import xmlEscape from 'xml-escape';
+
+import type { MessageTransformPayload } from '~/types/message.js';
 
 /**
 	Takes a Discord message and replaces the pings with HTML pings
@@ -17,11 +18,13 @@ export async function formatPings({
 	const pingMatches = newMessage.matchAll(/<@!(\d+)>/g);
 
 	const membersMap: Record<string, string> = {};
-	for (const pingMatch of pingMatches) {
-		const memberId = pingMatch[1]!;
-		const pingedMember = await context.guild?.members.fetch(memberId);
-		membersMap[memberId] = pingedMember?.user.tag ?? '[Unknown User]';
-	}
+	await Promise.all(
+		[...pingMatches].map(async (pingMatch) => {
+			const memberId = pingMatch[1]!;
+			const pingedMember = await context.guild?.members.fetch(memberId);
+			membersMap[memberId] = pingedMember?.user.tag ?? '[Unknown User]';
+		})
+	);
 
 	newMessage = newMessage.replaceAll(
 		/<@!(\d+)>/g,

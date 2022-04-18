@@ -1,8 +1,10 @@
-import * as process from 'node:process';
 import type { Message } from '@google-cloud/pubsub';
 import { PubSub } from '@google-cloud/pubsub';
+import * as process from 'node:process';
+
+import type { GmailWebhookCallbackProps } from '~/types/email.js';
+
 import { getGmailClient } from './client.js';
-import { GmailWebhookCallbackProps } from '~/types/email.js';
 
 export async function setupGmailWebhook(
 	callback: (props: GmailWebhookCallbackProps) => Promise<void>

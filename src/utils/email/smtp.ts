@@ -1,3 +1,4 @@
+import process from 'node:process';
 import * as nodemailer from 'nodemailer';
 import onetime from 'onetime';
 

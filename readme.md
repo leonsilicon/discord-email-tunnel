@@ -15,11 +15,11 @@ git clone https://github.com/leonzalion/discord-email-tunnel
 cd discord-email-tunnel
 ```
 
-Then, navigate to <https://discord.com/developers/applications> and create a new Discord Application by clicking the *New Application* button in the top right corner.
+Then, navigate to <https://discord.com/developers/applications> and create a new Discord Application by clicking the _New Application_ button in the top right corner.
 
-Then, once you've created the application, click the *Bot* button on the sidebar. This should take you to a page with an *Add Bot* button. Click the *Add Bot* button to create a new bot.
+Then, once you've created the application, click the _Bot_ button on the sidebar. This should take you to a page with an _Add Bot_ button. Click the _Add Bot_ button to create a new bot.
 
-Once you've added a bot, you should see a *Reset Token* button under your bot's icon and username. Press this button, and you should see a string of random characters appear. Copy this string into an `.env` file in the root of the `discord-email-tunnel` you just created:
+Once you've added a bot, you should see a _Reset Token_ button under your bot's icon and username. Press this button, and you should see a string of random characters appear. Copy this string into an `.env` file in the root of the `discord-email-tunnel` you just created:
 
 ```env
 # .env
@@ -34,15 +34,15 @@ Once you've created a project, select it by pressing on this dropdown menu and s
 
 Then, once you've selected the project, visit this URL to set up the consent screen for the project: <https://console.cloud.google.com/apis/credentials/consent>. This is needed in order to generate the OAuth2 credentials we'll use later on.
 
-Press the radio button next to the "Internal" option, and then click *Create*.
+Press the radio button next to the "Internal" option, and then click _Create_.
 
 ![Google Cloud OAuth Consent Screen](assets/google-cloud-oauth-consent-screen.png)
 
-Then, type in a name for your app in the *App name* textbox (e.g. `Discord Email Tunnel`) and then select your email in the *User Support Email* box. Then, scroll all the way down and type in your email again under *Developer contact information*. Then, press the *Save And Continue* button at the bottom.
+Then, type in a name for your app in the _App name_ textbox (e.g. `Discord Email Tunnel`) and then select your email in the _User Support Email_ box. Then, scroll all the way down and type in your email again under _Developer contact information_. Then, press the _Save And Continue_ button at the bottom.
 
-This should take you to a *Scopes* screen. You don't need to modify the scopes for this application, so click the "Save and Continue" button at the bottom of the screen.
+This should take you to a _Scopes_ screen. You don't need to modify the scopes for this application, so click the "Save and Continue" button at the bottom of the screen.
 
-Finally, this should take you to a summary page, where you can press *Back to Dashboard* to complete creating the consent screen.
+Finally, this should take you to a summary page, where you can press _Back to Dashboard_ to complete creating the consent screen.
 
 Now, we need to generate OAuth credentials for the application. Start by visiting the following URL: <https://console.cloud.google.com/apis/credentials/oauthclient>
 

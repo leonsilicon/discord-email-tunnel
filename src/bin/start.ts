@@ -1,5 +1,7 @@
 import 'dotenv/config.js';
+
 import process from 'node:process';
+
 import { getBotUser, getDiscordBot } from '~/utils/discord.js';
 import { onEmailReply } from '~/utils/email/on-reply.js';
 import { sendEmailAboutDiscordMessage } from '~/utils/email/send.js';

@@ -1,8 +1,9 @@
-import { MessageTransformPayload } from '~/types/message.js';
+import type { MessageTransformPayload } from '~/types/message.js';
+
 import {
-	formatPings,
-	formatMarkdown,
 	escapeMessage,
+	formatMarkdown,
+	formatPings,
 } from './message-transformers.js';
 
 const messageTransformers = [
@@ -17,7 +18,9 @@ export async function transformMessageToHTML({
 }: MessageTransformPayload) {
 	let newMessage = message;
 	for (const messageTransformer of messageTransformers) {
+		// eslint-disable-next-line no-await-in-loop
 		newMessage = await messageTransformer({ message, context });
 	}
+
 	return newMessage;
 }

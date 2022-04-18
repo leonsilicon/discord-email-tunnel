@@ -1,12 +1,13 @@
-import { gmail_v1 } from 'googleapis';
+import type { gmail_v1 } from 'googleapis';
+import { Buffer } from 'node:buffer';
 
 export async function getEmailHtml(
 	emailParts: gmail_v1.Schema$MessagePart[]
 ): Promise<string> {
 	// First find email HTML
-	async function checkEmailPart(
+	function checkEmailPart(
 		emailPart: gmail_v1.Schema$MessagePart
-	): Promise<string | undefined> {
+	): string | undefined {
 		if (emailPart.mimeType === 'text/html') {
 			const emailHtmlBase64 = emailPart?.body?.data ?? undefined;
 
@@ -18,13 +19,13 @@ export async function getEmailHtml(
 		}
 
 		for (const part of emailPart.parts ?? []) {
-			const result = await checkEmailPart(part);
+			const result = checkEmailPart(part);
 			if (result !== undefined) return result;
 		}
 	}
 
 	for (const emailPart of emailParts) {
-		const result = await checkEmailPart(emailPart);
+		const result = checkEmailPart(emailPart);
 		if (result !== undefined) return result;
 	}
 
