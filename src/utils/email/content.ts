@@ -46,7 +46,10 @@ export async function createEmailContentFromDiscordMessage(
 				replyMessage.author.tag
 			)}</u> who said: </strong>
 			<br />
-			${await transformMessageToHTML({ context: replyMessage, message })}
+			${await transformMessageToHTML({
+				context: replyMessage,
+				message: replyMessage.content,
+			})}
 			<br />
 		`;
 	}
