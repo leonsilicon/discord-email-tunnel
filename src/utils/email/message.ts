@@ -14,13 +14,12 @@ const messageTransformers = [
 
 export async function transformMessageToHTML({
 	context,
-	message: oldMessage,
+	message,
 }: MessageTransformPayload) {
-	let newMessage = oldMessage;
 	for (const messageTransformer of messageTransformers) {
 		// eslint-disable-next-line no-await-in-loop
-		newMessage = await messageTransformer({ message: oldMessage, context });
+		message = await messageTransformer({ message, context });
 	}
 
-	return newMessage;
+	return message;
 }
