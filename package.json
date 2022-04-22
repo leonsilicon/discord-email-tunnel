@@ -24,7 +24,7 @@
 		"tc": "tsc --noEmit"
 	},
 	"devDependencies": {
-		"@leonzalion/configs": "^1.2.17",
+		"@leonzalion/configs": "^1.2.23",
 		"@types/html-to-text": "^8.1.0",
 		"@types/markdown-it": "^12.2.3",
 		"@types/node": "^17.0.24",
