@@ -1,5 +1,6 @@
 import DOMPurify from 'isomorphic-dompurify';
 import Markdown from 'markdown-it';
+import emoji from 'node-emoji';
 import { outdent } from 'outdent';
 import xmlEscape from 'xml-escape';
 
@@ -50,7 +51,14 @@ export async function escapeMessage({ message }: MessageTransformPayload) {
 const md = new Markdown();
 /**
 	Takes a string and formats markdown using markdown-it
- */
+*/
 export async function formatMarkdown({ message }: MessageTransformPayload) {
 	return md.render(message);
+}
+
+/**
+	Takes a string and emojifys it with node-emoji
+*/
+export async function transformEmojis({ message }: MessageTransformPayload) {
+	return emoji.emojify(message);
 }
