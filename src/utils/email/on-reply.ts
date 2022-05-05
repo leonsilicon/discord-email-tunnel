@@ -45,8 +45,17 @@ export async function onEmailReply({
 	const initialEmailHtml = await getEmailHtml(emailParts);
 
 	const $ = cheerio.load(initialEmailHtml);
+
+	// TODO: find better way to remove ending blockquote
+
+	// Remove quoted blockquote section from Gmail
 	$('.gmail_attr + blockquote').remove();
 	$('.gmail_attr').remove();
+
+	// Remove quoted blockquote section from Apple Mail
+	$('blockquote[type="cite"]').remove();
+
+	// Remove all <br> elements from the message (Gmail quirk)
 	$('br').remove();
 
 	const emailHtml = $.html({ decodeEntities: false });
