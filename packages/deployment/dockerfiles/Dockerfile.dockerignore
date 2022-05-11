@@ -1,2 +1,3 @@
-node_modules
-packages/assets
+**/node_modules
+**/packages/assets
+**/.git
