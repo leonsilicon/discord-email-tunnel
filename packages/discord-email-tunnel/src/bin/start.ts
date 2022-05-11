@@ -1,5 +1,3 @@
-import 'dotenv/config.js';
-
 import process from 'node:process';
 
 import { getBotUser, getDiscordBot } from '~/utils/discord.js';

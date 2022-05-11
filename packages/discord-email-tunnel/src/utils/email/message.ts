@@ -4,11 +4,13 @@ import {
 	escapeMessage,
 	formatMarkdown,
 	formatPings,
+	transformEmojis,
 } from './message-transformers.js';
 
 const messageTransformers = [
 	formatPings,
 	formatMarkdown,
+	transformEmojis,
 	escapeMessage, // should be last
 ];
 

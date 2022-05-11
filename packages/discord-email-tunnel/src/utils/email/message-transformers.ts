@@ -4,16 +4,19 @@ import emoji from 'node-emoji';
 import { outdent } from 'outdent';
 import xmlEscape from 'xml-escape';
 
-import type { MessageTransformPayload } from '~/types/message.js';
+import type {
+	MessageTransformer,
+	MessageTransformPayload,
+} from '~/types/message.js';
 
 /**
 	Takes a Discord message and replaces the pings with HTML pings
 	@returns A new string representing the message formatted with pings
 */
-export async function formatPings({
+export const formatPings: MessageTransformer = async ({
 	message,
 	context,
-}: MessageTransformPayload) {
+}: MessageTransformPayload) => {
 	let newMessage = message;
 
 	const pingMatches = newMessage.matchAll(/<@!(\d+)>/g);
@@ -38,27 +41,27 @@ export async function formatPings({
 	);
 
 	return newMessage;
-}
+};
 
 /**
 	Filters out malicious HTML tags from the message (e.g. <script>) using DOMPurify
 	@returns The message with all malicious HTML tags filtered out.
 */
-export async function escapeMessage({ message }: MessageTransformPayload) {
-	return DOMPurify.sanitize(message);
-}
+export const escapeMessage: MessageTransformer = ({
+	message,
+}: MessageTransformPayload) => DOMPurify.sanitize(message);
 
 const md = new Markdown();
 /**
 	Takes a string and formats markdown using markdown-it
 */
-export async function formatMarkdown({ message }: MessageTransformPayload) {
-	return md.render(message);
-}
+export const formatMarkdown: MessageTransformer = ({
+	message,
+}: MessageTransformPayload) => md.render(message);
 
 /**
 	Takes a string and emojifys it with node-emoji
 */
-export async function transformEmojis({ message }: MessageTransformPayload) {
-	return emoji.emojify(message);
-}
+export const transformEmojis: MessageTransformer = ({
+	message,
+}: MessageTransformPayload) => emoji.emojify(message);

@@ -29,6 +29,9 @@ async function sendQueueMessages() {
 }
 
 let queueInterval: NodeJS.Timer | undefined;
+/**
+	Currently unused.
+*/
 export async function addMessageToQueue(entry: MessageQueueEntry) {
 	messageQueue.push(entry);
 

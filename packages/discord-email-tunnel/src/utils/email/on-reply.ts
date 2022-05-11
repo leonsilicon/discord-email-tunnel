@@ -71,7 +71,7 @@ export async function onEmailReply({
 
 		emailHtml = $.html({ decodeEntities: false });
 
-		debug(() => `Email HTML: ${emailHtml!}`);
+		debug((f) => f`Email HTML: ${emailHtml!}`);
 
 		emailText = convertHtmlToText($.html({ decodeEntities: false }), {
 			selectors: [

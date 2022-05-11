@@ -16,7 +16,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "node-ts ./scripts/build.ts",
-		"dev": "node-ts ./src/bin/start.ts",
+		"dev": "dotenv -e ../../.env node-ts ./src/bin/start.ts",
 		"start": "node ./dist/bin/start.js",
 		"test": "vitest run",
 		"lint": "eslint --cache --fix .",

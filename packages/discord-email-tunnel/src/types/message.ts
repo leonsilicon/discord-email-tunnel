@@ -6,3 +6,7 @@ export type MessageTransformPayload = {
 	message: string;
 	context: MessageContext;
 };
+
+export type MessageTransformer = (
+	payload: MessageTransformPayload
+) => string | Promise<string>;

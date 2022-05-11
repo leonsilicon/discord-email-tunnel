@@ -3,6 +3,7 @@ import { PubSub } from '@google-cloud/pubsub';
 import * as process from 'node:process';
 
 import type { GmailWebhookCallbackProps } from '~/types/email.js';
+import { debug } from '~/utils/debug.js';
 
 import { getGmailClient } from './client.js';
 
@@ -22,7 +23,13 @@ export async function setupGmailWebhook(
 		(topic) =>
 			topic.name === 'projects/discord-email-tunnel/topics/email-tunnel'
 	)!;
+
+	debug(() => `PubSub topic found: ${topic.name}`);
+
 	if (topic === undefined) {
+		debug(
+			() => `PubSub topic not found, creating new \`email-tunnel\` topic...`
+		);
 		[topic] = await pubsub.createTopic('email-tunnel');
 	}
 
@@ -32,7 +39,12 @@ export async function setupGmailWebhook(
 			subscription.name ===
 			'projects/discord-email-tunnel/subscriptions/email-received'
 	)!;
+	debug(() => `PubSub subscription found: ${subscription.name}`);
 	if (subscription === undefined) {
+		debug(
+			() =>
+				`PubSub subscription not found, creating new \`email-received\` topic...`
+		);
 		[subscription] = await topic.createSubscription('email-received');
 	}
 
@@ -48,8 +60,11 @@ export async function setupGmailWebhook(
 	}
 
 	let lastHistoryId = watchResponse.data.historyId;
+	debug(() => `Last history ID: ${lastHistoryId ?? 'undefined'}`);
 
 	subscription.on('message', async (message: Message) => {
+		debug(() => 'Reply message received!');
+
 		message.ack();
 
 		const messagePayload = JSON.parse(message.data.toString()) as {
