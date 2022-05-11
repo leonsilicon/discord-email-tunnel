@@ -11,6 +11,6 @@ execaCommandSync('flyctl secrets import', {
 });
 
 execaCommandSync(
-	'flyctl launch --dockerfile ./packages/deployment/dockerfiles/Dockerfile',
+	'flyctl deploy --local-only --dockerfile ./packages/deployment/dockerfiles/Dockerfile',
 	{ stdio: 'inherit' }
 );
