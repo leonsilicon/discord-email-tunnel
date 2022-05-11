@@ -3,6 +3,7 @@ import type { Message as DiscordMessage } from 'discord.js';
 import { MessageAttachment } from 'discord.js';
 import type { gmail_v1 } from 'googleapis';
 import { convert as convertHtmlToText } from 'html-to-text';
+import stringify from 'json-stringify-pretty-compact';
 import { Buffer } from 'node:buffer';
 
 import type { GmailWebhookCallbackProps } from '~/types/email.js';
@@ -47,8 +48,7 @@ export async function onEmailReply({
 		throw new Error('Email does not contain any parts.');
 	}
 
-	// `emailParts` may be circular
-	logDebug(() => `Email parts: ${JSON.stringify(emailParts)}`);
+	logDebug(() => `Email parts: ${stringify(emailParts)}`);
 
 	let emailHtml = await getEmailHtml(emailParts);
 

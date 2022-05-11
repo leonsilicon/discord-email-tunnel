@@ -1,6 +1,8 @@
 import type { gmail_v1 } from 'googleapis';
 import { Buffer } from 'node:buffer';
 
+import { logDebug } from '~/utils/log.js';
+
 export async function getEmailHtml(
 	emailParts: gmail_v1.Schema$MessagePart[]
 ): Promise<string | undefined> {
@@ -46,9 +48,16 @@ export async function getEmailHtml(
 	for (const emailPart of emailParts) {
 		const htmlResult = checkEmailPartHtml(emailPart);
 		if (htmlResult !== undefined) return htmlResult;
+
 		// If the html part is not found, check for a text/plain part as a fallback
 		const plainTextResult = checkEmailPartPlainText(emailPart);
-		if (plainTextResult !== undefined) return plainTextResult;
+		if (plainTextResult !== undefined) {
+			logDebug(
+				() =>
+					`\`text/html\` part not found in email, using \`text/plain\` instead`
+			);
+			return plainTextResult;
+		}
 	}
 
 	// Email may not have an HTML part, so in the case that none is found, return undefined
