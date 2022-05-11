@@ -68,7 +68,7 @@ export async function createEmailContentFromDiscordMessage(
 		}
 	}
 
-	debug(() => `Email content: ${emailContent}`);
+	debug((f) => f`Email content: ${emailContent}`);
 
 	return emailContent;
 }
