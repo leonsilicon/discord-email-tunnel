@@ -1,7 +1,7 @@
+import * as dotenv from 'dotenv';
 import { execaCommandSync } from 'execa';
 import { chProjectDir } from 'lion-system';
 import * as fs from 'node:fs';
-import * as dotenv from 'dotenv';
 
 chProjectDir(import.meta.url, { monorepoRoot: true });
 
