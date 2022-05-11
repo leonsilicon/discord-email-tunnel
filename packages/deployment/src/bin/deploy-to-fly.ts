@@ -14,9 +14,11 @@ const flyEnvVariables = Object.entries(envVariables)
 execaCommandSync('flyctl secrets import', {
 	input: flyEnvVariables,
 	reject: false,
+	stdout: 'inherit',
+	stderr: 'inherit',
 });
 
-execaCommandSync(
-	'flyctl deploy --local-only --dockerfile ./packages/deployment/dockerfiles/Dockerfile',
-	{ stdio: 'inherit' }
-);
+// execaCommandSync(
+// 	'flyctl deploy --local-only --dockerfile ./packages/deployment/dockerfiles/Dockerfile',
+// 	{ stdio: 'inherit' }
+// );
