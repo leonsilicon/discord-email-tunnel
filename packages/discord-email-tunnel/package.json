@@ -48,7 +48,6 @@
 		"xml-escape": "^1.1.0"
 	},
 	"devDependencies": {
-		"@leonzalion/configs": "^1.4.5",
 		"@types/html-to-text": "^8.1.0",
 		"@types/markdown-it": "^12.2.3",
 		"@types/node": "^17.0.31",

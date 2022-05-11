@@ -2,6 +2,7 @@
 	"name": "@discord-email-tunnel/deployment",
 	"type": "module",
 	"scripts": {
+		"deploy": "node-ts ./src/bin/deploy-to-fly.ts",
 		"lint": "eslint --cache --fix .",
 		"prettier": "prettier --write .",
 		"typecheck": "tsc --noEmit"

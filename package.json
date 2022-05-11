@@ -22,7 +22,7 @@
 		"run-if-env": "^0.0.5"
 	},
 	"devDependencies": {
-		"@leonzalion/configs": "^1.4.5",
+		"@leonzalion/configs": "^1.4.13",
 		"typescript": "^4.6.4"
 	}
 }
