@@ -1,1 +1,7 @@
+# fly.toml file generated for discord-email-tunnel on 2022-05-11T17:36:25-04:00
+
 app = "discord-email-tunnel"
+
+
+[build]
+  dockerfile = "./packages/deployment/dockerfiles/Dockerfile"

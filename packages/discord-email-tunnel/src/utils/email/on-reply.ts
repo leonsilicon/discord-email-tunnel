@@ -160,7 +160,9 @@ export async function onEmailReply({
 		destinationEmailAddress?.match(/\+(\w+)-(\w+)@/) ?? undefined;
 
 	if (plusAddressMatches === undefined) {
-		throw new Error('Email address does not match expected regex.');
+		throw new Error(
+			`Email address \`${destinationEmailAddress!}\` does not match expected regex.`
+		);
 	}
 
 	const channelId = plusAddressMatches[1];
