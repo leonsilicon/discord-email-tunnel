@@ -4,7 +4,9 @@ import { getBotUser, getDiscordBot } from '~/utils/discord.js';
 import { onEmailReply } from '~/utils/email/on-reply.js';
 import { sendEmailAboutDiscordMessage } from '~/utils/email/send.js';
 import { setupGmailWebhook } from '~/utils/email/webhook.js';
+import { checkEnvironmentVariables } from '~/utils/env.js';
 
+checkEnvironmentVariables();
 await setupGmailWebhook(onEmailReply);
 
 const bot = getDiscordBot();
