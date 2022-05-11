@@ -101,7 +101,7 @@ export async function onEmailReply({
 		const mimeType = emailPart.mimeType ?? undefined;
 		if (mimeType === undefined) return;
 
-		if (mimeType === 'multipart/alternative') {
+		if (mimeType.startsWith('multipart/')) {
 			if (emailPart.parts === undefined) return;
 			for (const part of emailPart.parts) {
 				// eslint-disable-next-line no-await-in-loop

@@ -8,7 +8,10 @@ export async function getEmailHtml(
 	function checkEmailPart(
 		emailPart: gmail_v1.Schema$MessagePart
 	): string | undefined {
-		if (emailPart.mimeType === 'text/html') {
+		if (
+			emailPart.mimeType === 'text/html' ||
+			emailPart.mimeType === 'text/plain'
+		) {
 			const emailHtmlBase64 = emailPart?.body?.data ?? undefined;
 
 			if (emailHtmlBase64 === undefined) {
