@@ -7,7 +7,10 @@ chProjectDir(import.meta.url, { monorepoRoot: true });
 const envVariables = fs.readFileSync('.env', 'utf8');
 execaCommandSync('flyctl secrets import', {
 	input: envVariables,
+	reject: false,
 });
+
 execaCommandSync(
-	'flyctl launch --dockerfile ./packages/deployment/dockerfiles/Dockerfile'
+	'flyctl launch --dockerfile ./packages/deployment/dockerfiles/Dockerfile',
+	{ stdio: 'inherit' }
 );
