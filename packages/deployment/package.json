@@ -1,6 +1,11 @@
 {
 	"name": "@discord-email-tunnel/deployment",
 	"type": "module",
+	"scripts": {
+		"lint": "eslint --cache --fix .",
+		"prettier": "prettier --write .",
+		"typecheck": "tsc --noEmit"
+	},
 	"dependencies": {
 		"desm": "^1.2.0",
 		"execa": "^6.1.0",

@@ -1,6 +1,11 @@
 {
 	"name": "@discord-email-tunnel/scripts",
 	"type": "module",
+	"scripts": {
+		"lint": "eslint --cache --fix .",
+		"prettier": "prettier --write .",
+		"typecheck": "tsc --noEmit"
+	},
 	"dependencies": {
 		"lion-system": "^1.3.27"
 	}
