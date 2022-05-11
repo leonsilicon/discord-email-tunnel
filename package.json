@@ -19,7 +19,7 @@
 		"typecheck": "pnpm recursive run typecheck"
 	},
 	"dependencies": {
-		"run-if-env": "^0.0.5"
+		"run-if": "^0.0.6"
 	},
 	"devDependencies": {
 		"@leonzalion/configs": "^1.4.13",
