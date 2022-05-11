@@ -34,45 +34,59 @@ export async function onEmailReply({
 		id: message.id,
 	});
 
-	const emailParts = messageResponse.data.payload?.parts ?? undefined;
+	let emailParts = messageResponse.data.payload?.parts ?? undefined;
 
 	if (emailParts === undefined) {
-		throw new Error('Email parts not found.');
+		const emailPart = messageResponse.data.payload;
+		if (emailPart === undefined) {
+			throw new Error('Email parts not found.');
+		}
+
+		emailParts = [emailPart];
 	} else if (emailParts.length === 0) {
 		throw new Error('Email does not contain any parts.');
 	}
 
-	const initialEmailHtml = await getEmailHtml(emailParts);
+	// `emailParts` may be circular
+	logDebug(() => `Email parts: ${JSON.stringify(emailParts)}`);
 
-	const $ = cheerio.load(initialEmailHtml);
+	let emailHtml = await getEmailHtml(emailParts);
 
-	// TODO: find better way to remove ending blockquote
+	let emailText: string;
+	if (emailHtml === undefined) {
+		emailText = '';
+	} else {
+		const $ = cheerio.load(emailHtml);
 
-	// Remove quoted blockquote section from Gmail
-	$('.gmail_attr + blockquote').remove();
-	$('.gmail_attr').remove();
+		// TODO: find better way to remove ending blockquote
 
-	// Remove quoted blockquote section from Apple Mail
-	$('blockquote[type="cite"]').remove();
+		// Remove quoted blockquote section from Gmail
+		$('.gmail_attr + blockquote').remove();
+		$('.gmail_attr').remove();
 
-	// Remove all <br> elements from the message (Gmail quirk)
-	$('br').remove();
+		// Remove quoted blockquote section from Apple Mail
+		$('blockquote[type="cite"]').remove();
 
-	const emailHtml = $.html({ decodeEntities: false });
+		// Remove all <br> elements from the message (Gmail quirk)
+		$('br').remove();
 
-	logDebug(() => `Email HTML: ${emailHtml}`);
+		emailHtml = $.html({ decodeEntities: false });
 
-	const emailText = convertHtmlToText($.html({ decodeEntities: false }), {
-		selectors: [
-			{
-				selector: 'blockquote',
-				options: {
-					leadingLineBreaks: 1,
-					trailingLineBreaks: 1,
+		logDebug(() => `Email HTML: ${emailHtml!}`);
+
+		emailText = convertHtmlToText($.html({ decodeEntities: false }), {
+			selectors: [
+				{
+					selector: 'blockquote',
+					options: {
+						leadingLineBreaks: 1,
+						trailingLineBreaks: 1,
+					},
 				},
-			},
-		],
-	});
+			],
+		});
+	}
+
 	const attachments: MessageAttachment[] = [];
 
 	async function handleEmailPart({
@@ -109,17 +123,6 @@ export async function onEmailReply({
 			const emailPartBodyAttachmentId = emailPartBody.attachmentId ?? undefined;
 			if (emailPartBodyAttachmentId === undefined) {
 				logDebug(() => `Email part body attachment ID was undefined.`);
-				return;
-			}
-
-			const imageId =
-				emailPart.headers?.find((header) => header.name === 'X-Attachment-Id')
-					?.value ?? undefined;
-
-			logDebug(() => `Email HTML: ${emailHtml}`);
-
-			if (imageId === undefined || !emailHtml.includes(imageId)) {
-				logDebug(() => `Image ID not found in HTML.`);
 				return;
 			}
 

@@ -1,8 +1,10 @@
 import type { Message } from '@google-cloud/pubsub';
 import { PubSub } from '@google-cloud/pubsub';
+import * as flatted from 'flatted';
 import * as process from 'node:process';
 
 import type { GmailWebhookCallbackProps } from '~/types/email.js';
+import { logDebug } from '~/utils/log.js';
 
 import { getGmailClient } from './client.js';
 

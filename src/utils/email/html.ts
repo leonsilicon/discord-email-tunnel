@@ -3,7 +3,7 @@ import { Buffer } from 'node:buffer';
 
 export async function getEmailHtml(
 	emailParts: gmail_v1.Schema$MessagePart[]
-): Promise<string> {
+): Promise<string | undefined> {
 	// First find email HTML
 	function checkEmailPart(
 		emailPart: gmail_v1.Schema$MessagePart
@@ -29,5 +29,6 @@ export async function getEmailHtml(
 		if (result !== undefined) return result;
 	}
 
-	throw new Error('Email HTML part not found.');
+	// Email may not have an HTML part, so in the case that none is found, return undefined
+	return undefined;
 }
