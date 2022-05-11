@@ -22,7 +22,9 @@ export async function getEmailHtml(
 
 		for (const part of emailPart.parts ?? []) {
 			const result = checkEmailPartHtml(part);
-			if (result !== undefined) return result;
+			if (result !== undefined) {
+				return result;
+			}
 		}
 	}
 
@@ -41,21 +43,27 @@ export async function getEmailHtml(
 
 		for (const part of emailPart.parts ?? []) {
 			const result = checkEmailPartPlainText(part);
-			if (result !== undefined) return result;
+			if (result !== undefined) {
+				return result;
+			}
 		}
 	}
 
 	for (const emailPart of emailParts) {
 		const htmlResult = checkEmailPartHtml(emailPart);
-		if (htmlResult !== undefined) return htmlResult;
+		if (htmlResult !== undefined) {
+			return htmlResult;
+		}
+	}
 
+	logDebug(
+		() => `\`text/html\` part not found in email, using \`text/plain\` instead`
+	);
+
+	for (const emailPart of emailParts) {
 		// If the html part is not found, check for a text/plain part as a fallback
 		const plainTextResult = checkEmailPartPlainText(emailPart);
 		if (plainTextResult !== undefined) {
-			logDebug(
-				() =>
-					`\`text/html\` part not found in email, using \`text/plain\` instead`
-			);
 			return plainTextResult;
 		}
 	}
