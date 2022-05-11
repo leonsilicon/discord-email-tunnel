@@ -4,7 +4,6 @@
 		"outDir": "dist",
 		"baseUrl": ".",
 		"lib": ["ES2021"],
-		"downlevelIteration": true,
 		"paths": {
 			"~/*": ["./src/*"]
 		}
