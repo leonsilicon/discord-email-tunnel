@@ -38,7 +38,7 @@ export async function addMessageToQueue(entry: MessageQueueEntry) {
 				await sendQueueMessages();
 			},
 			// Only send messages every 2 minutes
-			12 * 60 * 1000
+			2 * 60 * 1000
 		);
 	}
 }
