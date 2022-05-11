@@ -1,7 +1,7 @@
 import type { gmail_v1 } from 'googleapis';
 import { Buffer } from 'node:buffer';
 
-import { logDebug } from '~/utils/log.js';
+import { debug } from '~/utils/debug.js';
 
 export async function getEmailHtml(
 	emailParts: gmail_v1.Schema$MessagePart[]
@@ -56,7 +56,7 @@ export async function getEmailHtml(
 		}
 	}
 
-	logDebug(
+	debug(
 		() => `\`text/html\` part not found in email, using \`text/plain\` instead`
 	);
 

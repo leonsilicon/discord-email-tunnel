@@ -5,8 +5,8 @@ import type {
 import { outdent } from 'outdent';
 import xmlEscape from 'xml-escape';
 
+import { debug } from '~/utils/debug.js';
 import { transformMessageToHTML } from '~/utils/email/message.js';
-import { logDebug } from '~/utils/log.js';
 
 export async function createEmailContentFromDiscordMessage(
 	discordMessage: DiscordMessage | DiscordPartialMessage
@@ -68,7 +68,7 @@ export async function createEmailContentFromDiscordMessage(
 		}
 	}
 
-	logDebug(() => `Email content: ${emailContent}`);
+	debug(() => `Email content: ${emailContent}`);
 
 	return emailContent;
 }

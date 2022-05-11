@@ -3,14 +3,13 @@ import type { Message as DiscordMessage } from 'discord.js';
 import { MessageAttachment } from 'discord.js';
 import type { gmail_v1 } from 'googleapis';
 import { convert as convertHtmlToText } from 'html-to-text';
-import stringify from 'json-stringify-pretty-compact';
 import { Buffer } from 'node:buffer';
 
 import type { GmailWebhookCallbackProps } from '~/types/email.js';
+import { debug } from '~/utils/debug.js';
 import { getDiscordBot } from '~/utils/discord.js';
 import { getGmailClient } from '~/utils/email/client.js';
 import { getEmailHtml } from '~/utils/email/html.js';
-import { logDebug } from '~/utils/log.js';
 
 /**
 	Called when the user replies to an email that was sent by discord-email-tunnel
@@ -19,7 +18,7 @@ export async function onEmailReply({
 	message,
 	emailAddress,
 }: GmailWebhookCallbackProps) {
-	logDebug(() => 'Handling mail reply...');
+	debug(() => 'Handling mail reply...');
 
 	const bot = getDiscordBot();
 	const gmail = getGmailClient();
@@ -48,7 +47,7 @@ export async function onEmailReply({
 		throw new Error('Email does not contain any parts.');
 	}
 
-	logDebug(() => `Email parts: ${stringify(emailParts)}`);
+	debug((f) => f`Email parts: ${emailParts}`);
 
 	let emailHtml = await getEmailHtml(emailParts);
 
@@ -72,7 +71,7 @@ export async function onEmailReply({
 
 		emailHtml = $.html({ decodeEntities: false });
 
-		logDebug(() => `Email HTML: ${emailHtml!}`);
+		debug(() => `Email HTML: ${emailHtml!}`);
 
 		emailText = convertHtmlToText($.html({ decodeEntities: false }), {
 			selectors: [
@@ -110,19 +109,19 @@ export async function onEmailReply({
 		} else {
 			const emailPartBody = emailPart.body ?? undefined;
 			if (emailPartBody === undefined) {
-				logDebug(() => `Email part body was undefined.`);
+				debug(() => `Email part body was undefined.`);
 				return;
 			}
 
 			const filename = emailPart.filename ?? undefined;
 			if (filename === undefined) {
-				logDebug(() => `Filename was undefined.`);
+				debug(() => `Filename was undefined.`);
 				return;
 			}
 
 			const emailPartBodyAttachmentId = emailPartBody.attachmentId ?? undefined;
 			if (emailPartBodyAttachmentId === undefined) {
-				logDebug(() => `Email part body attachment ID was undefined.`);
+				debug(() => `Email part body attachment ID was undefined.`);
 				return;
 			}
 
@@ -134,7 +133,7 @@ export async function onEmailReply({
 
 			const attachmentBase64 = attachment.data.data ?? undefined;
 			if (attachmentBase64 === undefined) {
-				logDebug(() => `base64 of attachment data not found.`);
+				debug(() => `base64 of attachment data not found.`);
 				return;
 			}
 
