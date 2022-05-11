@@ -12,6 +12,7 @@
 	},
 	"type": "module",
 	"scripts": {
+		"start": "pnpm --filter=discord-email-tunnel run start",
 		"prepare": "run-if-env NODE_ENV!=production lion-git-hooks",
 		"lint": "pnpm recursive run lint",
 		"prettier": "pnpm recursive run prettier",

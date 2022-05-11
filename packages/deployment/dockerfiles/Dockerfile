@@ -31,6 +31,8 @@ RUN rm -rf node_modules && pnpm recursive exec -- rm -rf ./node_modules ./src
 
 # Only installing production dependencies
 FROM base as prod
+ENV NODE_ENV=production
+
 RUN pnpm install --prod
 
 COPY --from=assets /root/monorepo .
