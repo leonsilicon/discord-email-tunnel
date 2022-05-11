@@ -5,7 +5,10 @@ importers:
   .:
     specifiers:
       '@leonzalion/configs': ^1.4.5
+      run-if-env: ^0.0.5
       typescript: ^4.6.4
+    dependencies:
+      run-if-env: 0.0.5
     devDependencies:
       '@leonzalion/configs': 1.4.5_typescript@4.6.4
       typescript: 4.6.4
@@ -5819,6 +5822,14 @@ packages:
       minimist: 1.2.6
       strip-json-comments: 3.1.1
     dev: true
+
+  /run-if-env/0.0.5:
+    resolution: {integrity: sha512-bAUaky60Kiotbq9rqymG4EMV17PzxuuYAh3BLFCEhw9kFUbmK/kENp+iHecVs1HAe88v3o1BpHvrsp73P8z4yA==}
+    hasBin: true
+    dependencies:
+      execa: 6.1.0
+      qs: 6.10.3
+    dev: false
 
   /run-parallel/1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}

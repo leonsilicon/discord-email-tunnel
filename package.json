@@ -12,10 +12,13 @@
 	},
 	"type": "module",
 	"scripts": {
-		"prepare": "lion-git-hooks",
+		"prepare": "run-if-env NODE_ENV!=production lion-git-hooks",
 		"lint": "pnpm recursive run lint",
 		"prettier": "pnpm recursive run prettier",
 		"typecheck": "pnpm recursive run typecheck"
+	},
+	"dependencies": {
+		"run-if-env": "^0.0.5"
 	},
 	"devDependencies": {
 		"@leonzalion/configs": "^1.4.5",
