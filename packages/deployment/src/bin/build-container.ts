@@ -6,7 +6,7 @@ const monorepoDir = getProjectDir(import.meta.url, { monorepoRoot: true });
 
 const discordEmailTunnelDockerFilePath = join(
 	import.meta.url,
-	'../dockerfiles/Dockerfile'
+	'../../dockerfiles/Dockerfile'
 );
 execaSync(
 	'docker',

@@ -38,7 +38,6 @@ COPY --from=assets /root/monorepo .
 COPY ["package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "./"]
 COPY ["packages/discord-email-tunnel", "./packages/discord-email-tunnel"]
 
-# We have to run `pnpm install`
 RUN pnpm install --prod
 
 CMD ["node", "packages/discord-email-tunnel/dist/bin/start.js"]
