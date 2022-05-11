@@ -55,6 +55,8 @@ export async function setupGmailWebhook(
 		requestBody: { topicName: topic.name },
 	});
 
+	debug((f) => f`Watch response: ${watchResponse}`);
+
 	if (watchResponse.data.historyId === null) {
 		throw new Error('watchResponse did not return a historyId.');
 	}

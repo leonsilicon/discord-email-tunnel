@@ -1,0 +1,4 @@
+# no idea why fly.io doesn't respect Dockerfile.dockerignore so we'll use a global one instead for now
+**/node_modules
+**/packages/assets
+**/.git
