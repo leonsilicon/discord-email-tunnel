@@ -1,9 +1,10 @@
+import * as cheerio from 'cheerio';
 import type { gmail_v1 } from 'googleapis';
 import { Buffer } from 'node:buffer';
 
 import { debug } from '~/utils/debug.js';
 
-export async function getEmailHtml(
+export async function getOriginalEmailHtml(
 	emailParts: gmail_v1.Schema$MessagePart[]
 ): Promise<string | undefined> {
 	// First find email HTML
@@ -70,4 +71,26 @@ export async function getEmailHtml(
 
 	// Email may not have an HTML part, so in the case that none is found, return undefined
 	return undefined;
+}
+
+export function cleanEmailHtml({
+	originalEmailHtml,
+}: {
+	originalEmailHtml: string;
+}): string {
+	const $ = cheerio.load(originalEmailHtml);
+
+	// TODO: find better way to remove ending blockquote
+
+	// Remove quoted blockquote section from Gmail
+	$('.gmail_attr + blockquote').remove();
+	$('.gmail_attr').remove();
+
+	// Remove quoted blockquote section from Apple Mail
+	$('blockquote[type="cite"]').remove();
+
+	// Remove all <br> elements from the message (Gmail quirk)
+	$('br').remove();
+
+	return $.html({ decodeEntities: false });
 }
