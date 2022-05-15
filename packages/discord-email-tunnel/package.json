@@ -1,19 +1,19 @@
 {
 	"name": "discord-email-tunnel",
+	"type": "module",
 	"version": "0.0.0",
 	"description": "A Discord Bot that creates a tunnel between Discord and your email to prevent synchronous communication.",
 	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/leonzalion/discord-email-tunnel.git"
-	},
-	"homepage": "https://github.com/leonzalion/discord-email-tunnel#readme",
 	"author": {
 		"name": "Leon Si",
 		"email": "contact@leonzalion.com",
 		"url": "https://leonzalion.com"
 	},
-	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/leonzalion/discord-email-tunnel.git"
+	},
+	"homepage": "https://github.com/leonzalion/discord-email-tunnel#readme",
 	"scripts": {
 		"build": "node-ts ./scripts/build.ts",
 		"dev": "dotenv -e ../../.env node-ts ./src/bin/start.ts",

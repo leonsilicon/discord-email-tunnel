@@ -22,7 +22,7 @@ export async function onEmailReply({
 }: GmailWebhookCallbackProps) {
 	if (message.id === null || message.id === undefined) {
 		throw new Error(
-			`\`message.id\` is ${String(message.id)}, refusing to handle message.`
+			`Message ID not found in message ${JSON.stringify(message)}.`
 		);
 	}
 
@@ -37,12 +37,6 @@ export async function onEmailReply({
 
 	const gmail = getGmailClient();
 
-	if (message.id === undefined || message.id === null) {
-		throw new Error(
-			`Message ID not found in message ${JSON.stringify(message)}`
-		);
-	}
-
 	const messageResponse = await gmail.users.messages.get({
 		userId: emailAddress,
 		id: message.id,
@@ -50,6 +44,9 @@ export async function onEmailReply({
 
 	let emailParts = messageResponse.data.payload?.parts ?? undefined;
 
+	/**
+		If the email payload doesn't have multiple parts, it probably just only has one part that is represented by the `payload` property directly
+	 */
 	if (emailParts === undefined) {
 		const emailPart = messageResponse.data.payload;
 		if (emailPart === undefined) {
