@@ -15,10 +15,7 @@
 		"deploy": "pnpm --filter=@discord-email-tunnel/deployment run deploy",
 		"dev": "pnpm --filter=discord-email-tunnel run dev",
 		"start": "pnpm --filter=discord-email-tunnel run start",
-		"prepare": "run-if-env NODE_ENV!=production lion-git-hooks",
-		"lint": "pnpm recursive run lint",
-		"prettier": "pnpm recursive run prettier",
-		"typecheck": "pnpm recursive run typecheck"
+		"prepare": "run-if-env NODE_ENV!=production lion-git-hooks"
 	},
 	"dependencies": {
 		"run-if": "^0.0.6"
