@@ -30,13 +30,13 @@ Then, log into Google Cloud: <https://console.cloud.google.com/home/dashboard>, 
 
 Once you've created a project, select it by pressing on this dropdown menu and selecting your project by clicking on it in the popup window:
 
-![Google Cloud Dropdown Menu](assets/google-cloud-dropdown.png)
+![Google Cloud Dropdown Menu](packages/assets/images/google-cloud-dropdown.png)
 
 Then, once you've selected the project, visit this URL to set up the consent screen for the project: <https://console.cloud.google.com/apis/credentials/consent>. This is needed in order to generate the OAuth2 credentials we'll use later on.
 
 Press the radio button next to the "Internal" option, and then click _Create_.
 
-![Google Cloud OAuth Consent Screen](assets/google-cloud-oauth-consent-screen.png)
+![Google Cloud OAuth Consent Screen](packages/assets/images/google-cloud-oauth-consent-screen.png)
 
 Then, type in a name for your app in the _App name_ textbox (e.g. `Discord Email Tunnel`) and then select your email in the _User Support Email_ box. Then, scroll all the way down and type in your email again under _Developer contact information_. Then, press the _Save And Continue_ button at the bottom.
 
@@ -60,7 +60,7 @@ Now, we need to create a refresh token using these credentials. Visit the follow
 
 Press the Settings icon in the top right and check the "Use your own OAuth credentials" checkbox. Then, paste in your client ID and client secret into the "OAuth Client ID" and "OAuth Client secret" textboxes:
 
-![OAuth Playground](assets/google-cloud-oauth-playground.png)
+![OAuth Playground](packages/assets/images/google-cloud-oauth-playground.png)
 
 Then, press the Settings icon again to close out of the menu. On the bottom left side of the screen, you should see an input box saying "Input your own scopes". Copy-paste the following text into that textbox:
 
