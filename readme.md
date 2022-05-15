@@ -74,7 +74,7 @@ This should bring you to the "Choose an account" screen. Here, select the email 
 
 Then, make sure to select all the checkboxes when you're prompted with the "Google OAuth 2.0 Playground wants access to your Google Account" screen:
 
-![OAuth Consent](assets/oauth-consent.png)
+![OAuth Consent](packages/assets/images/oauth-consent.png)
 
 Then, scroll to the bottom of the page and press "Continue". You should be taken back to the Google OAuth 2.0 Playground page.
 
