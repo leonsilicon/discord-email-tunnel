@@ -7,6 +7,6 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"lion-system": "^1.3.27"
+		"lion-system": "^1.3.33"
 	}
 }
