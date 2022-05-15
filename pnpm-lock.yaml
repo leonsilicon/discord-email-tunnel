@@ -4,13 +4,13 @@ importers:
 
   .:
     specifiers:
-      lionconfig: ^1.6.9
+      lionconfig: ^1.6.10
       run-if: ^0.0.6
       typescript: ^4.6.4
     dependencies:
       run-if: 0.0.6
     devDependencies:
-      lionconfig: 1.6.9_typescript@4.6.4
+      lionconfig: 1.6.10_typescript@4.6.4
       typescript: 4.6.4
 
   packages/assets:
@@ -4957,8 +4957,8 @@ packages:
       tslib: 2.4.0
       typescript: 4.6.4
 
-  /lionconfig/1.6.9_typescript@4.6.4:
-    resolution: {integrity: sha512-U8grpvwlrgLItHlIgUGIOiaWm3oXdpe0PsQBUPeoNKiSk7e/6x/EbWmmR5AGSmgNJuydIb8TsxWhxwovnvpf6Q==}
+  /lionconfig/1.6.10_typescript@4.6.4:
+    resolution: {integrity: sha512-xH8qR5B974zrjIUTDxh0913nQnN1k8ECRqKttd96QIxZlskNrz46if3s3Kwz1dHR84Z6d0arR7LG72UB8OcDfg==}
     hasBin: true
     dependencies:
       '@commitlint/cli': 16.3.0_@swc+core@1.2.183
